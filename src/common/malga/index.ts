@@ -1,0 +1,1 @@
+export { Malga } from './malga'

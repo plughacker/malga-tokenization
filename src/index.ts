@@ -1,0 +1,1 @@
+export { MalgaTokenization } from './tokenization'
