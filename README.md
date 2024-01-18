@@ -139,7 +139,7 @@ malgaTokenization.init()
 
 ## Examples
 
-If you have any doubts about the integration, you can [click here]('https://github.com/plughacker/malga-tokenization/tree/main/examples') to see some examples
+If you have any doubts about the integration, you can [click here](https://github.com/plughacker/malga-tokenization/tree/main/examples) to see some examples
 
 ## Contributing
 
