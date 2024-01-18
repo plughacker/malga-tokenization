@@ -5,7 +5,6 @@
   <h1>Malga Tokenization SDK</h1>
 </div>
 
-![Release](https://github.com/plughacker/malga-tokenization/actions/workflows/release.yml/badge.svg)
 ![Tests](https://github.com/plughacker/malga-tokenization/actions/workflows/tests.yml/badge.svg)
 
 Simple way to tokenize cards with Malga

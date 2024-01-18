@@ -14,6 +14,12 @@ export class MalgaTokenization {
   private readonly elements: MalgaFormElements
 
   constructor(configurations: MalgaConfigurations) {
+    if (!configurations.apiKey || !configurations.clientId) {
+      throw new Error(
+        'Missing API key. Pass it to the constructor `new MalgaTokenization({ apiKey: "YOUR_API_KEY", clientId: "YOUR_CLIENT_ID" })`',
+      )
+    }
+
     this.malga = new Malga(configurations)
     this.elements = this.handleElements(configurations.options?.elements)
   }

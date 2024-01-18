@@ -1,2 +1,1 @@
-export { server } from './setupTests'
-export { rest as request } from 'msw'
+export { server } from './mocks'
