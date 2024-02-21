@@ -1,6 +1,6 @@
 export interface TokenizationPayload {
-  holderName: string
-  number: string
-  expirationDate: string
-  cvv: string
+  holderName?: string
+  number?: string
+  expirationDate?: string
+  cvv?: string
 }

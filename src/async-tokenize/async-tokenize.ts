@@ -5,7 +5,7 @@ import {
   removeFormElements,
   createFormElement,
   getFormValues,
-} from 'src/common/utils'
+} from '../common/utils'
 
 export class AsyncTokenize {
   constructor(

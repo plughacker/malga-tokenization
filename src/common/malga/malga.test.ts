@@ -25,7 +25,7 @@ describe('Malga', () => {
       cvv: '951',
       expirationDate: '05/2030',
     })
-
+    console.log('response: ', response)
     expect(response).toMatchObject({ tokenId: 'sandbox-token-id' })
   })
 

@@ -1,13 +1,13 @@
 import { Malga } from './common/malga'
 
-import { AsyncTokenize } from './async-tokenize'
-import { Tokenize } from './tokenize'
-
 import type {
   MalgaConfigurations,
   MalgaConfigurationsElements,
   MalgaFormElements,
 } from 'src/common/interfaces'
+
+import { AsyncTokenize } from './async-tokenize'
+import { Tokenize } from './tokenize'
 
 export class MalgaTokenization {
   private readonly malga: Malga
