@@ -1,10 +1,12 @@
-import { Malga } from '../../common/malga/malga'
-import { AsyncTokenize } from '../async-tokenize'
+import { fireEvent } from '@testing-library/dom'
+
 import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
 } from './mock/async-tokenize-mock'
+import { Malga } from '../../common/malga/malga'
+import { AsyncTokenize } from '../async-tokenize'
 
 const MalgaConfigurations = {
   apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
@@ -24,41 +26,50 @@ vi.mock('../../common/malga/malga', async (importOriginal) => {
 })
 
 describe('handle', () => {
-  test('askmsk', () => {
+  test('askmsk', async () => {
     const {
       form,
       holderNameInput,
       cvvInput,
       expirationDateInput,
       numberInput,
+      buttonSubmit,
     } = handleFormMock()
 
-    form.action = '/teste'
-    form.method = 'POST'
     form.setAttribute(formElementsMock.form, '')
+    form.method = 'POST'
+    form.action = '/teste'
 
     holderNameInput.setAttribute(formElementsMock.holderName, '')
     numberInput.setAttribute(formElementsMock.number, '')
     cvvInput.setAttribute(formElementsMock.cvv, '')
     expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
+    buttonSubmit.type = 'submit'
 
     document.body.appendChild(form)
     form.appendChild(holderNameInput)
     form.appendChild(numberInput)
     form.appendChild(expirationDateInput)
     form.appendChild(cvvInput)
-
-    const inputs = document.querySelectorAll('input')
-    inputs[0].value = formValuesMock.holderName
-    inputs[1].value = formValuesMock.number
-    inputs[2].value = formValuesMock.expirationDate
-    inputs[3].value = formValuesMock.cvv
+    form.appendChild(buttonSubmit)
 
     const malga = new Malga(MalgaConfigurations)
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
     asyncTokenizeObject.handle()
-    console.log(inputs.length)
+
+    const inputs = document.querySelectorAll('input')
+
+    inputs[0].value = formValuesMock.holderName
+    inputs[1].value = formValuesMock.number
+    inputs[2].value = formValuesMock.expirationDate
+    inputs[3].value = formValuesMock.cvv
+
+    fireEvent.submit(form)
+
+    const inputs2 = document.querySelectorAll('input')
+
+    expect(inputs2.length).toBe(5)
   })
 })

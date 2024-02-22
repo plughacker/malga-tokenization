@@ -14,6 +14,7 @@ export const handleFormMock = () => {
     numberInput: document.createElement('input'),
     expirationDateInput: document.createElement('input'),
     cvvInput: document.createElement('input'),
+    buttonSubmit: document.createElement('button'),
   }
 }
 

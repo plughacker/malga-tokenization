@@ -29,6 +29,7 @@ export function createFormElement(name: string, value: string) {
   const field = document.createElement('input')
   field.type = 'hidden'
   field.name = name
+  field.setAttribute('tokenId', '')
   field.value = value
 
   return field
