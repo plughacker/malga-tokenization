@@ -111,9 +111,27 @@ describe('getFormElements', () => {
     expect(formElements.expirationDate).toBeNull()
     expect(formElements.cvv).toBeNull()
   })
+
+  test('should be possible to return null if there is no equal element in the DOM', () => {
+    const formElements = getFormElements({
+      form: 'data-malga-form',
+      holderName: 'data-malga-holder-name',
+      number: 'data-malga-number',
+      expirationDate: 'data-malga-expiration-date',
+      cvv: 'data-malga-cvv',
+    })
+    expect(formElements.form).toBeNull()
+    expect(formElements.holderName).toBeNull()
+    expect(formElements.number).toBeNull()
+    expect(formElements.expirationDate).toBeNull()
+    expect(formElements.cvv).toBeNull()
+  })
 })
 
 describe('removeFormElements', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
   test('should be possible to return null when trying to find the elements in the dom after calling the function', () => {
     const {
       form,
@@ -143,10 +161,14 @@ describe('removeFormElements', () => {
       cvv: 'data-malga-tokenization-cvv',
     })
 
-    expect(document.querySelector('holderName')).toBeNull()
-    expect(document.querySelector('number')).toBeNull()
-    expect(document.querySelector('expirationDate')).toBeNull()
-    expect(document.querySelector('cvv')).toBeNull()
+    expect(
+      document.querySelector('data-malga-tokenization-holder-name'),
+    ).toBeNull()
+    expect(document.querySelector('data-malga-tokenization-number')).toBeNull()
+    expect(
+      document.querySelector('data-malga-tokenization-expiration-date'),
+    ).toBeNull()
+    expect(document.querySelector('data-malga-tokenization-cvv')).toBeNull()
   })
   test('should be returned the elements in the DOM, when the function are called with selectores wrong, since the elements could not be removed', () => {
     const {
