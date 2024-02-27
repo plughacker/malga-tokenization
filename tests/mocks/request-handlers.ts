@@ -7,17 +7,17 @@ export const handlers = [
   http.post('https://api.malga.io/v1/tokens', async ({ request }) => {
     const apiKey = request.headers.get('X-Api-Key')
     const clientId = request.headers.get('X-Client-Id')
-    /**
-     * const data = await request.formData()
+
+    const data = await request.formData()
 
     const cardHolderName = data.get('cardHolderName')
     const cardNumber = data.get('cardNumber')
-    const cardCvv = data.get('cardCvv')
     const cardExpirationDate = data.get('cardExpirationDate')
-    if (!cardHolderName && !cardNumber && !cardCvv && !cardExpirationDate) {
+    const cardCvv = data.get('cardCvv')
+
+    if (!cardHolderName || !cardNumber || !cardExpirationDate || !cardCvv) {
       return new HttpResponse({ message: 'Forbidden' } as any, { status: 403 })
     }
-     */
 
     if (!apiKey && !clientId) {
       return new HttpResponse({ message: 'Forbidden' } as any, { status: 403 })

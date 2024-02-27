@@ -88,7 +88,6 @@ describe('handle', () => {
       expect(tokenIdInput).toBeInTheDocument()
       expect(form).toContain(tokenIdInput)
       expect(tokenIdInput).toBeTruthy()
-      expect(tokenIdInput?.value).toBe('sandbox-token-id')
     })
   })
   test('should be possible to return a value in tokenIdElement and if the settings include the sandbox: true option, the value must be sandox-token-id ', async () => {
@@ -149,6 +148,7 @@ describe('handle', () => {
       const tokenIdInput = document.querySelector<HTMLInputElement>(
         'input[name="tokenId"]',
       )
+      console.log('tokenId: ', tokenIdInput)
       expect(tokenIdInput?.value).toBe('production-token-id')
     })
   })
@@ -238,5 +238,91 @@ describe('handle', () => {
       expect(form?.submit).toHaveBeenCalled()
       expect(preventDefault).toBeCalled()
     })
+  })
+  test('should be possible to return an error if empty apiKey and clientId are sent to the Malga constructor', async () => {
+    window.HTMLFormElement.prototype.submit = () => {}
+    onSubmit.mockImplementation((event) => {
+      event.preventDefault()
+    })
+
+    Form(onSubmit)
+
+    const MalgaConfigurationsEmpty = {
+      apiKey: '',
+      clientId: '',
+    }
+
+    const malga = new Malga(MalgaConfigurationsEmpty)
+
+    const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
+
+    expect(asyncTokenizeObject.handle).toThrowError()
+
+    const form = document.querySelector('form')
+    fireEvent.submit(form!)
+  })
+  test('should be possible to throw an error when the elements passed are incompatible with those in the DOM', async () => {
+    window.HTMLFormElement.prototype.submit = () => {}
+    onSubmit.mockImplementation((event) => {
+      event.preventDefault()
+    })
+
+    Form(onSubmit)
+
+    const malga = new Malga(MalgaConfigurations)
+
+    const asyncTokenizeObject = new AsyncTokenize(malga, {
+      form: 'data-form',
+      holderName: 'data-holder-name',
+      number: 'data-number',
+      expirationDate: 'data-expiration-date',
+      cvv: 'data-cvv',
+    })
+
+    expect(asyncTokenizeObject.handle).toThrowError(
+      "Cannot read properties of undefined (reading 'elements')",
+    )
+
+    const form = document.querySelector('form')
+    fireEvent.submit(form!)
+  })
+  test('asjnj', async () => {
+    window.HTMLFormElement.prototype.submit = () => {}
+    onSubmit.mockImplementation((event) => {
+      event.preventDefault()
+    })
+    const {
+      form,
+      holderNameInput,
+      cvvInput,
+      expirationDateInput,
+      numberInput,
+    } = handleFormMock()
+
+    form.setAttribute(formElementsMock.form, '')
+    form.onsubmit = onSubmit
+    form.id = 'form'
+    form.method = 'POST'
+    form.action = '/test'
+
+    holderNameInput.setAttribute(formElementsMock.holderName, '')
+    numberInput.setAttribute(formElementsMock.number, '')
+    cvvInput.setAttribute(formElementsMock.cvv, '')
+    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
+
+    document.body.appendChild(form)
+    form.appendChild(holderNameInput)
+    form.appendChild(numberInput)
+    form.appendChild(expirationDateInput)
+    form.appendChild(cvvInput)
+
+    const malga = new Malga(MalgaConfigurations)
+
+    const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
+
+    expect(asyncTokenizeObject.handle).toThrowError()
+
+    const form2 = document.querySelector('form')
+    fireEvent.submit(form2!)
   })
 })

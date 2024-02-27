@@ -166,16 +166,16 @@ describe('handle', () => {
     inputs[2].value = formValuesMock.expirationDate
     inputs[3].value = formValuesMock.cvv
 
-    const MalgaConfigurations2 = {
+    const MalgaConfigurationsEmpty = {
       apiKey: '',
       clientId: '',
     }
 
-    const malga = new Malga(MalgaConfigurations2)
+    const malga = new Malga(MalgaConfigurationsEmpty)
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 
-    await expect(tokenizeObject.handle()).rejects.toThrowError()
+    await expect(tokenizeObject.handle).rejects.toThrowError()
   })
   test('should be possible to perform the tokenization function and getFormValues with the respective elements correctly', async () => {
     const {

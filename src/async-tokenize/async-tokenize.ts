@@ -32,7 +32,7 @@ export class AsyncTokenize {
 
       removeFormElements(this.elements)
       const tokenIdElement = createFormElement('tokenId', tokenId)
-
+      console.log(tokenIdElement)
       form?.appendChild(tokenIdElement)
 
       form?.submit()

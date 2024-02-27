@@ -30,6 +30,7 @@ export function createFormElement(name: string, value: string) {
   field.type = 'hidden'
   field.name = name
   field.value = value
+  console.log('token valor: ', field.value)
 
   return field
 }

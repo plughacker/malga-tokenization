@@ -6,6 +6,9 @@ import {
 import { getFormValues } from '../form-values/form-values'
 
 describe('getFormValues', () => {
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
   test('should be the values of elements equals to sended', () => {
     const {
       form,
@@ -66,12 +69,6 @@ describe('getFormValues', () => {
     form.appendChild(numberInput)
     form.appendChild(expirationDateInput)
     form.appendChild(cvvInput)
-
-    const inputs = document.querySelectorAll('input')
-    inputs[0].value = ''
-    inputs[1].value = ''
-    inputs[2].value = ''
-    inputs[3].value = ''
 
     const formValue = getFormValues({
       form: 'data-malga-tokenization-form',
