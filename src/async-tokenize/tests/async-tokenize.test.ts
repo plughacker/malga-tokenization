@@ -3,7 +3,7 @@ import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
-} from './mock/async-tokenize-mock'
+} from '../../../tests/mocks/elements-values-mocks'
 import { Malga } from '../../common/malga/malga'
 import { AsyncTokenize } from '../async-tokenize'
 import * as utilsValues from '../../common/utils/form-values/form-values'
@@ -286,7 +286,7 @@ describe('handle', () => {
     const form = document.querySelector('form')
     fireEvent.submit(form!)
   })
-  test('asjnj', async () => {
+  test('should be possible to return an error if the form inputs do not have values assigned', async () => {
     window.HTMLFormElement.prototype.submit = () => {}
     onSubmit.mockImplementation((event) => {
       event.preventDefault()
@@ -316,7 +316,11 @@ describe('handle', () => {
     form.appendChild(expirationDateInput)
     form.appendChild(cvvInput)
 
-    const malga = new Malga(MalgaConfigurations)
+    const MalgaConfigurationsProduction = {
+      apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
+      clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
+    }
+    const malga = new Malga(MalgaConfigurationsProduction)
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 

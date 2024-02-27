@@ -8,12 +8,12 @@ export const handlers = [
     const apiKey = request.headers.get('X-Api-Key')
     const clientId = request.headers.get('X-Client-Id')
 
-    const data = await request.formData()
+    const data: any = await request.json()
 
-    const cardHolderName = data.get('cardHolderName')
-    const cardNumber = data.get('cardNumber')
-    const cardExpirationDate = data.get('cardExpirationDate')
-    const cardCvv = data.get('cardCvv')
+    const cardHolderName = data.cardHolderName
+    const cardNumber = data.cardNumber
+    const cardExpirationDate = data.cardExpirationDate
+    const cardCvv = data.cardCvv
 
     if (!cardHolderName || !cardNumber || !cardExpirationDate || !cardCvv) {
       return new HttpResponse({ message: 'Forbidden' } as any, { status: 403 })

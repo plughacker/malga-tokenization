@@ -1,4 +1,4 @@
-import { MalgaFormElements } from 'src/common/interfaces'
+import { MalgaFormElements } from '../../src/common/interfaces/form'
 
 export const formValuesMock = {
   holderName: 'Taylor Swift',
@@ -23,12 +23,4 @@ export const formElementsMock: MalgaFormElements = {
   number: 'data-malga-tokenization-number',
   expirationDate: 'data-malga-tokenization-expiration-date',
   cvv: 'data-malga-tokenization-cvv',
-}
-
-export const formElementsMock2: MalgaFormElements = {
-  form: 'data-tokenization-form',
-  holderName: 'data-tokenization-holder-name',
-  number: 'data-tokenization-number',
-  expirationDate: 'data-tokenization-expiration-date',
-  cvv: 'data-tokenization-cvv',
 }

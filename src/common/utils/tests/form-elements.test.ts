@@ -1,9 +1,32 @@
 import {
+  formElementsMock,
+  handleFormMock,
+} from '../../../../tests/mocks/elements-values-mocks'
+import {
   createFormElement,
   getFormElements,
   removeFormElements,
 } from '../form-elements/form-elements'
-import { formElementsMock, handleFormMock } from './mocks/formElements-mock'
+
+function Form() {
+  const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
+    handleFormMock()
+
+  form.setAttribute(formElementsMock.form, '')
+  holderNameInput.setAttribute(formElementsMock.holderName, '')
+  numberInput.setAttribute(formElementsMock.number, '')
+  cvvInput.setAttribute(formElementsMock.cvv, '')
+  expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
+
+  document.body.appendChild(form)
+  form.appendChild(holderNameInput)
+  form.appendChild(numberInput)
+  form.appendChild(expirationDateInput)
+  form.appendChild(cvvInput)
+}
+
+const tokenId = '54595fec-87db-44f8-996a-2f4d6bf270b9'
+
 describe('getFormElements', () => {
   test('should be returned the elements correctly', () => {
     const {
@@ -42,25 +65,7 @@ describe('getFormElements', () => {
   })
 
   test('should be possible to find the elements in the dom', () => {
-    const {
-      form,
-      holderNameInput,
-      cvvInput,
-      expirationDateInput,
-      numberInput,
-    } = handleFormMock()
-
-    form.setAttribute(formElementsMock.form, '')
-    holderNameInput.setAttribute(formElementsMock.holderName, '')
-    numberInput.setAttribute(formElementsMock.number, '')
-    cvvInput.setAttribute(formElementsMock.cvv, '')
-    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-    document.body.appendChild(form)
-    form.appendChild(holderNameInput)
-    form.appendChild(numberInput)
-    form.appendChild(expirationDateInput)
-    form.appendChild(cvvInput)
+    Form()
 
     const formElements = getFormElements({
       form: 'data-malga-tokenization-form',
@@ -78,25 +83,7 @@ describe('getFormElements', () => {
   })
 
   test("Should be returned null when elements aren't finded", () => {
-    const {
-      form,
-      holderNameInput,
-      cvvInput,
-      expirationDateInput,
-      numberInput,
-    } = handleFormMock()
-
-    form.setAttribute(formElementsMock.form, '')
-    holderNameInput.setAttribute(formElementsMock.holderName, '')
-    numberInput.setAttribute(formElementsMock.number, '')
-    cvvInput.setAttribute(formElementsMock.cvv, '')
-    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-    document.body.appendChild(form)
-    form.appendChild(holderNameInput)
-    form.appendChild(numberInput)
-    form.appendChild(expirationDateInput)
-    form.appendChild(cvvInput)
+    Form()
 
     const formElements = getFormElements({
       form: 'data-malga-form',
@@ -133,25 +120,7 @@ describe('removeFormElements', () => {
     document.body.innerHTML = ''
   })
   test('should be possible to return null when trying to find the elements in the dom after calling the function', () => {
-    const {
-      form,
-      holderNameInput,
-      cvvInput,
-      expirationDateInput,
-      numberInput,
-    } = handleFormMock()
-
-    form.setAttribute(formElementsMock.form, '')
-    holderNameInput.setAttribute(formElementsMock.holderName, '')
-    numberInput.setAttribute(formElementsMock.number, '')
-    cvvInput.setAttribute(formElementsMock.cvv, '')
-    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-    document.body.appendChild(form)
-    form.appendChild(holderNameInput)
-    form.appendChild(numberInput)
-    form.appendChild(expirationDateInput)
-    form.appendChild(cvvInput)
+    Form()
 
     removeFormElements({
       form: 'data-malga-tokenization-form',
@@ -171,25 +140,7 @@ describe('removeFormElements', () => {
     expect(document.querySelector('data-malga-tokenization-cvv')).toBeNull()
   })
   test('should be returned the elements in the DOM, when the function are called with selectores wrong, since the elements could not be removed', () => {
-    const {
-      form,
-      holderNameInput,
-      cvvInput,
-      expirationDateInput,
-      numberInput,
-    } = handleFormMock()
-
-    form.setAttribute(formElementsMock.form, '')
-    holderNameInput.setAttribute(formElementsMock.holderName, '')
-    numberInput.setAttribute(formElementsMock.number, '')
-    cvvInput.setAttribute(formElementsMock.cvv, '')
-    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-    document.body.appendChild(form)
-    form.appendChild(holderNameInput)
-    form.appendChild(numberInput)
-    form.appendChild(expirationDateInput)
-    form.appendChild(cvvInput)
+    Form()
 
     removeFormElements({
       form: 'data-malga-form',
@@ -215,7 +166,6 @@ describe('removeFormElements', () => {
 
 describe('createFormElements', () => {
   test('should be possible to return a field with attributes of name, type and value which must be the passed tokenId', () => {
-    const tokenId = '54595fec-87db-44f8-996a-2f4d6bf270b9'
     const tokenIdElement = createFormElement('tokenId', tokenId)
 
     expect(tokenIdElement).toHaveAttribute('name', 'tokenId')
@@ -224,8 +174,6 @@ describe('createFormElements', () => {
   })
 
   test('should be possible for the field field to be the same as the one mounted in the dom', () => {
-    const tokenId = '54595fec-87db-44f8-996a-2f4d6bf270b9'
-
     const tokenIdElement = createFormElement('tokenId', tokenId)
 
     const field = document.createElement('input')
@@ -236,7 +184,6 @@ describe('createFormElements', () => {
     expect(tokenIdElement).toEqual(field)
   })
   test('should be possible to insert the element in the body in the dom', () => {
-    const tokenId = '54595fec-87db-44f8-996a-2f4d6bf270b9'
     const tokenIdElement = createFormElement('tokenId', tokenId)
 
     document.body.appendChild(tokenIdElement)

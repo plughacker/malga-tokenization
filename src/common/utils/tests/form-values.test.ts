@@ -2,33 +2,31 @@ import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
-} from './mocks/formElements-mock'
+} from '../../../../tests/mocks/elements-values-mocks'
 import { getFormValues } from '../form-values/form-values'
 
+function Form() {
+  const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
+    handleFormMock()
+
+  form.setAttribute(formElementsMock.form, '')
+  holderNameInput.setAttribute(formElementsMock.holderName, '')
+  numberInput.setAttribute(formElementsMock.number, '')
+  cvvInput.setAttribute(formElementsMock.cvv, '')
+  expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
+
+  document.body.appendChild(form)
+  form.appendChild(holderNameInput)
+  form.appendChild(numberInput)
+  form.appendChild(expirationDateInput)
+  form.appendChild(cvvInput)
+}
 describe('getFormValues', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
   })
   test('should be the values of elements equals to sended', () => {
-    const {
-      form,
-      holderNameInput,
-      cvvInput,
-      expirationDateInput,
-      numberInput,
-    } = handleFormMock()
-
-    form.setAttribute(formElementsMock.form, '')
-    holderNameInput.setAttribute(formElementsMock.holderName, '')
-    numberInput.setAttribute(formElementsMock.number, '')
-    cvvInput.setAttribute(formElementsMock.cvv, '')
-    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-    document.body.appendChild(form)
-    form.appendChild(holderNameInput)
-    form.appendChild(numberInput)
-    form.appendChild(expirationDateInput)
-    form.appendChild(cvvInput)
+    Form()
 
     const inputs = document.querySelectorAll('input')
     inputs[0].value = formValuesMock.holderName
@@ -45,30 +43,12 @@ describe('getFormValues', () => {
     })
 
     expect(formValue.holderName).toEqual('Taylor Swift')
-    expect(formValue.number).toEqual('5173 0002 6586 0114')
+    expect(formValue.number).toEqual('5173000265860114')
     expect(formValue.expirationDate).toEqual('05/08/2024')
     expect(formValue.cvv).toEqual('114')
   })
   test("should be returned empty when elements aren't finded", () => {
-    const {
-      form,
-      holderNameInput,
-      cvvInput,
-      expirationDateInput,
-      numberInput,
-    } = handleFormMock()
-
-    form.setAttribute(formElementsMock.form, '')
-    holderNameInput.setAttribute(formElementsMock.holderName, '')
-    numberInput.setAttribute(formElementsMock.number, '')
-    cvvInput.setAttribute(formElementsMock.cvv, '')
-    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-    document.body.appendChild(form)
-    form.appendChild(holderNameInput)
-    form.appendChild(numberInput)
-    form.appendChild(expirationDateInput)
-    form.appendChild(cvvInput)
+    Form()
 
     const formValue = getFormValues({
       form: 'data-malga-tokenization-form',
@@ -84,25 +64,7 @@ describe('getFormValues', () => {
     expect(formValue.cvv).toBe('')
   })
   test('should be possible to return error if the elements are not found', async () => {
-    const {
-      form,
-      holderNameInput,
-      cvvInput,
-      expirationDateInput,
-      numberInput,
-    } = handleFormMock()
-
-    form.setAttribute(formElementsMock.form, '')
-    holderNameInput.setAttribute(formElementsMock.holderName, '')
-    numberInput.setAttribute(formElementsMock.number, '')
-    cvvInput.setAttribute(formElementsMock.cvv, '')
-    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-    document.body.appendChild(form)
-    form.appendChild(holderNameInput)
-    form.appendChild(numberInput)
-    form.appendChild(expirationDateInput)
-    form.appendChild(cvvInput)
+    Form()
 
     const inputs = document.querySelectorAll('input')
     inputs[0].value = formValuesMock.holderName
