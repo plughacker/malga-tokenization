@@ -2,7 +2,7 @@ import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
-} from '../../../../tests/mocks/elements-values-mocks'
+} from '../../../../tests/mocks/malga-tests-mocks'
 import { getFormValues } from '../form-values/form-values'
 
 function Form() {

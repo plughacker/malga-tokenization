@@ -3,19 +3,14 @@ import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
-} from '../../../tests/mocks/elements-values-mocks'
+  malgaConfigurations,
+  configureFormSubmissionMock,
+} from '../../../tests/mocks/malga-tests-mocks'
 import { Malga } from '../../common/malga/malga'
 import { AsyncTokenize } from '../async-tokenize'
 import * as utilsValues from '../../common/utils/form-values/form-values'
 import * as utilsElements from '../../common/utils/form-elements/form-elements'
 
-const MalgaConfigurations = {
-  apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
-  clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
-  options: {
-    sandbox: true,
-  },
-}
 const onSubmit = vi.fn()
 
 vi.mock('../../common/malga/malga', async (importOriginal) => {
@@ -27,12 +22,12 @@ vi.mock('../../common/malga/malga', async (importOriginal) => {
   }
 })
 
-function Form(props: any) {
+function generateForm(onSubmit: any) {
   const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
     handleFormMock()
 
   form.setAttribute(formElementsMock.form, '')
-  form.onsubmit = props.onSubmit
+  form.onsubmit = onSubmit
   form.id = 'form'
   form.method = 'POST'
   form.action = '/test'
@@ -60,14 +55,10 @@ describe('handle', () => {
     document.body.innerHTML = ''
   })
   test('should be possible to find a tokenId element in the DOM and consequently contained in the form element', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
+    generateForm(onSubmit)
 
-    Form(onSubmit)
-
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
@@ -91,22 +82,11 @@ describe('handle', () => {
     })
   })
   test('should be possible to return a value in tokenIdElement and if the settings include the sandbox: true option, the value must be sandox-token-id ', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
-    Form(onSubmit)
+    generateForm(onSubmit)
 
-    const MalgaConfigurationsSandBox = {
-      apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
-      clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
-      options: {
-        sandbox: true,
-      },
-    }
-
-    const malga = new Malga(MalgaConfigurationsSandBox)
+    const malga = new Malga(malgaConfigurations(true))
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
@@ -123,19 +103,16 @@ describe('handle', () => {
     })
   })
   test('should be possible to return a value in tokenIdElement and if the settings not include the sandbox: true option, the value must be production-token-id', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
-    Form(onSubmit)
+    generateForm(onSubmit)
 
-    const MalgaConfigurationsProduction = {
+    const malgaConfigurationsProduction = {
       apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
       clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
     }
 
-    const malga = new Malga(MalgaConfigurationsProduction)
+    const malga = new Malga(malgaConfigurationsProduction)
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
@@ -153,14 +130,11 @@ describe('handle', () => {
     })
   })
   test('should be possible to remove the elements and thus there is only 1 after the creation of the tokenIdElement and 4 before its creation', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
-    Form(onSubmit)
+    generateForm(onSubmit)
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
@@ -178,14 +152,11 @@ describe('handle', () => {
     })
   })
   test('should be possible for handle to call the getFormElements, getFormValues, Tokenization, removeFormElements and createFormElements functions passing the elements correctly', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
-    Form(onSubmit)
+    generateForm(onSubmit)
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
@@ -216,16 +187,13 @@ describe('handle', () => {
   })
   test('should be possible to check if the form was submitted and event.preventDefault was called afterwards', async () => {
     const submit = vi.fn()
-    window.HTMLFormElement.prototype.submit = submit
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock(submit)
     const event = new Event('submit')
     const preventDefault = vi.spyOn(event, 'preventDefault')
 
-    Form(onSubmit)
+    generateForm(onSubmit)
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
@@ -240,19 +208,16 @@ describe('handle', () => {
     })
   })
   test('should be possible to return an error if empty apiKey and clientId are sent to the Malga constructor', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
-    Form(onSubmit)
+    generateForm(onSubmit)
 
-    const MalgaConfigurationsEmpty = {
+    const malgaConfigurationsEmpty = {
       apiKey: '',
       clientId: '',
     }
 
-    const malga = new Malga(MalgaConfigurationsEmpty)
+    const malga = new Malga(malgaConfigurationsEmpty)
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
@@ -262,14 +227,11 @@ describe('handle', () => {
     fireEvent.submit(form!)
   })
   test('should be possible to throw an error when the elements passed are incompatible with those in the DOM', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
-    Form(onSubmit)
+    generateForm(onSubmit)
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const asyncTokenizeObject = new AsyncTokenize(malga, {
       form: 'data-form',
@@ -287,10 +249,7 @@ describe('handle', () => {
     fireEvent.submit(form!)
   })
   test('should be possible to return an error if the form inputs do not have values assigned', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
     const {
       form,
       holderNameInput,
@@ -316,11 +275,7 @@ describe('handle', () => {
     form.appendChild(expirationDateInput)
     form.appendChild(cvvInput)
 
-    const MalgaConfigurationsProduction = {
-      apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
-      clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
-    }
-    const malga = new Malga(MalgaConfigurationsProduction)
+    const malga = new Malga(malgaConfigurations(false))
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 

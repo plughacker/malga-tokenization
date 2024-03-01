@@ -2,15 +2,11 @@ import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
-} from '../../../tests/mocks/elements-values-mocks'
+  malgaConfigurations,
+} from '../../../tests/mocks/malga-tests-mocks'
 import { Malga } from '../../common/malga/malga'
 import { Tokenize } from '../tokenize'
 import * as utils from '../../common/utils/form-values/form-values'
-
-const MalgaConfigurations = {
-  apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
-  clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
-}
 
 vi.mock('../../common/malga/malga', async (importOriginal) => {
   const Malga =
@@ -21,7 +17,7 @@ vi.mock('../../common/malga/malga', async (importOriginal) => {
   }
 })
 
-function Form() {
+function generateForm() {
   const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
     handleFormMock()
 
@@ -49,9 +45,9 @@ describe('handle', () => {
     document.body.innerHTML = ''
   })
   test('should be an asynchronous function and return a promise', async () => {
-    Form()
+    generateForm()
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 
@@ -59,9 +55,9 @@ describe('handle', () => {
     await expect(tokenizeObject.handle()).resolves.toBeDefined()
   })
   test('should be possible for a tokenId to exist when elements are passed correctly', async () => {
-    Form()
+    generateForm()
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
     const tokenId = await tokenizeObject.handle()
@@ -69,17 +65,9 @@ describe('handle', () => {
     expect(tokenId).toBeTruthy()
   })
   test('should be possible to return a tokenId equal to sandbox-token-id when configurations include sandbox equal to true', async () => {
-    Form()
+    generateForm()
 
-    const MalgaConfigurationsSandbox = {
-      apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
-      clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
-      options: {
-        sandbox: true,
-      },
-    }
-
-    const malga = new Malga(MalgaConfigurationsSandbox)
+    const malga = new Malga(malgaConfigurations(true))
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 
@@ -87,14 +75,9 @@ describe('handle', () => {
     expect(tokenId).toMatchObject({ tokenId: 'sandbox-token-id' })
   })
   test('should be possible to return a tokenId equal to sandbox-token-id when configurations include production equal to true', async () => {
-    Form()
+    generateForm()
 
-    const MalgaConfigurationsProduction = {
-      apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
-      clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
-    }
-
-    const malga = new Malga(MalgaConfigurationsProduction)
+    const malga = new Malga(malgaConfigurations(false))
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 
@@ -102,9 +85,9 @@ describe('handle', () => {
     expect(tokenId).toMatchObject({ tokenId: 'production-token-id' })
   })
   test('should be possible to return error when elements are not passed correctly', async () => {
-    Form()
+    generateForm()
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const elementsMock = {
       form: 'jenjen',
@@ -120,23 +103,23 @@ describe('handle', () => {
     )
   })
   test('should be possible to return an error if the apiKey and clientId settings are empty', async () => {
-    Form()
+    generateForm()
 
-    const MalgaConfigurationsEmpty = {
+    const malgaConfigurationsEmpty = {
       apiKey: '',
       clientId: '',
     }
 
-    const malga = new Malga(MalgaConfigurationsEmpty)
+    const malga = new Malga(malgaConfigurationsEmpty)
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 
     await expect(tokenizeObject.handle).rejects.toThrowError()
   })
   test('should be possible to perform the tokenization function and getFormValues with the respective elements correctly', async () => {
-    Form()
+    generateForm()
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 
@@ -154,9 +137,9 @@ describe('handle', () => {
     expect(getFormValuesSpy).toHaveBeenCalledWith(formElementsMock)
   })
   test('should be possible that the getFormValues function is correctly returning the values assigned in the DOM', async () => {
-    Form()
+    generateForm()
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 
@@ -192,7 +175,7 @@ describe('handle', () => {
     form.appendChild(expirationDateInput)
     form.appendChild(cvvInput)
 
-    const malga = new Malga(MalgaConfigurations)
+    const malga = new Malga(malgaConfigurations(false))
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 

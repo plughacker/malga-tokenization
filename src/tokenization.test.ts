@@ -3,13 +3,10 @@ import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
-} from '../tests/mocks/elements-values-mocks'
+  malgaConfigurations,
+} from '../tests/mocks/malga-tests-mocks'
 import { MalgaTokenization } from './tokenization'
 
-const MalgaConfigurations = {
-  apiKey: '17a64c8f-a387-4682-bdd8-d280493715e0',
-  clientId: 'd1d2b51a-0446-432a-b055-034518c2660e',
-}
 vi.mock('./common/malga', async (importOriginal) => {
   const Malga = await importOriginal<typeof import('./common/malga')>()
   return {
@@ -85,7 +82,9 @@ describe('init', () => {
 
     FormForInit(onSubmit)
 
-    const malgaTokenizationObject = new MalgaTokenization(MalgaConfigurations)
+    const malgaTokenizationObject = new MalgaTokenization(
+      malgaConfigurations(false),
+    )
 
     malgaTokenizationObject.init()
 
@@ -132,7 +131,9 @@ describe('init', () => {
     form.appendChild(expirationDateInput)
     form.appendChild(cvvInput)
 
-    const malgaTokenizationObject = new MalgaTokenization(MalgaConfigurations)
+    const malgaTokenizationObject = new MalgaTokenization(
+      malgaConfigurations(false),
+    )
 
     await waitFor(() => {
       expect(malgaTokenizationObject.init).rejects.toThrowError()
@@ -149,13 +150,13 @@ describe('init', () => {
 
     FormForInit(onSubmit)
 
-    const MalgaConfigurationsEmpty = {
+    const malgaConfigurationsEmpty = {
       apiKey: '',
       clientId: '',
     }
 
     const malgaTokenizationObject = new MalgaTokenization(
-      MalgaConfigurationsEmpty,
+      malgaConfigurationsEmpty,
     )
 
     await waitFor(() => {
@@ -172,7 +173,9 @@ describe('tokenize', () => {
   })
   test('should be possible to return a not falsy value equal to production-token-id', async () => {
     window.HTMLFormElement.prototype.submit = () => {}
-    const malgaTokenizationObject = new MalgaTokenization(MalgaConfigurations)
+    const malgaTokenizationObject = new MalgaTokenization(
+      malgaConfigurations(false),
+    )
 
     FormForTokenize(handleSubmit)
 
@@ -195,7 +198,9 @@ describe('tokenize', () => {
   test('should be possible to return an error if form elements do not have values assigned', async () => {
     window.HTMLFormElement.prototype.submit = () => {}
 
-    const malgaTokenizationObject = new MalgaTokenization(MalgaConfigurations)
+    const malgaTokenizationObject = new MalgaTokenization(
+      malgaConfigurations(false),
+    )
 
     const {
       form,
@@ -234,13 +239,13 @@ describe('tokenize', () => {
   test('should be possible to return an error if apiKey and clientId are passed empty', () => {
     window.HTMLFormElement.prototype.submit = () => {}
 
-    const MalgaConfigurationsEmpty = {
+    const malgaConfigurationsEmpty = {
       apiKey: '',
       clientId: '',
     }
 
     const malgaTokenizationObject = new MalgaTokenization(
-      MalgaConfigurationsEmpty,
+      malgaConfigurationsEmpty,
     )
 
     FormForTokenize(handleSubmit)

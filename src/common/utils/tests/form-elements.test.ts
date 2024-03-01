@@ -1,7 +1,7 @@
 import {
   formElementsMock,
   handleFormMock,
-} from '../../../../tests/mocks/elements-values-mocks'
+} from '../../../../tests/mocks/malga-tests-mocks'
 import {
   createFormElement,
   getFormElements,
