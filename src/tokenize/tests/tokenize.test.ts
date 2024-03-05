@@ -114,7 +114,9 @@ describe('handle', () => {
 
     const tokenizeObject = new Tokenize(malga, formElementsMock)
 
-    await expect(tokenizeObject.handle).rejects.toThrowError()
+    await expect(tokenizeObject.handle).rejects.toThrowError(
+      "Cannot read properties of undefined (reading 'elements')",
+    )
   })
   test('should be possible to perform the tokenization function and getFormValues with the respective elements correctly', async () => {
     generateForm()

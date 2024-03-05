@@ -221,7 +221,9 @@ describe('handle', () => {
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
-    expect(asyncTokenizeObject.handle).toThrowError()
+    expect(asyncTokenizeObject.handle).toThrowError(
+      "Cannot read properties of undefined (reading 'elements')",
+    )
 
     const form = document.querySelector('form')
     fireEvent.submit(form!)

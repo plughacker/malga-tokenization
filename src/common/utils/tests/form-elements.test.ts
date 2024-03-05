@@ -8,7 +8,7 @@ import {
   removeFormElements,
 } from '../form-elements/form-elements'
 
-function Form() {
+function generateForm() {
   const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
     handleFormMock()
 
@@ -65,7 +65,7 @@ describe('getFormElements', () => {
   })
 
   test('should be possible to find the elements in the dom', () => {
-    Form()
+    generateForm()
 
     const formElements = getFormElements({
       form: 'data-malga-tokenization-form',
@@ -83,7 +83,7 @@ describe('getFormElements', () => {
   })
 
   test("Should be returned null when elements aren't finded", () => {
-    Form()
+    generateForm()
 
     const formElements = getFormElements({
       form: 'data-malga-form',
@@ -120,7 +120,7 @@ describe('removeFormElements', () => {
     document.body.innerHTML = ''
   })
   test('should be possible to return null when trying to find the elements in the dom after calling the function', () => {
-    Form()
+    generateForm()
 
     removeFormElements({
       form: 'data-malga-tokenization-form',
@@ -140,7 +140,7 @@ describe('removeFormElements', () => {
     expect(document.querySelector('data-malga-tokenization-cvv')).toBeNull()
   })
   test('should be returned the elements in the DOM, when the function are called with selectores wrong, since the elements could not be removed', () => {
-    Form()
+    generateForm()
 
     removeFormElements({
       form: 'data-malga-form',
