@@ -1,44 +1,21 @@
+import * as utils from 'src/common/utils/form-values/form-values'
 import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
   malgaConfigurations,
-} from '../../../tests/mocks/malga-tests-mocks'
-import { Malga } from '../../common/malga/malga'
-import { Tokenize } from '../tokenize'
-import * as utils from '../../common/utils/form-values/form-values'
+} from 'tests/mocks/common-configurations'
+import { generateForm } from 'tests/mocks/form-dom'
+import { Malga } from 'src/common/malga'
+import { Tokenize } from './tokenize'
 
-vi.mock('../../common/malga/malga', async (importOriginal) => {
-  const Malga =
-    await importOriginal<typeof import('../../common/malga/malga')>()
+vi.mock('src/common/malga', async (importOriginal) => {
+  const Malga = await importOriginal<typeof import('src/common/malga')>()
   return {
     ...Malga,
     tokenization: vi.fn(),
   }
 })
-
-function generateForm() {
-  const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
-    handleFormMock()
-
-  form.setAttribute(formElementsMock.form, '')
-  holderNameInput.setAttribute(formElementsMock.holderName, '')
-  numberInput.setAttribute(formElementsMock.number, '')
-  cvvInput.setAttribute(formElementsMock.cvv, '')
-  expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-  document.body.appendChild(form)
-  form.appendChild(holderNameInput)
-  form.appendChild(numberInput)
-  form.appendChild(expirationDateInput)
-  form.appendChild(cvvInput)
-
-  const inputs = document.querySelectorAll('input')
-  inputs[0].value = formValuesMock.holderName
-  inputs[1].value = formValuesMock.number
-  inputs[2].value = formValuesMock.expirationDate
-  inputs[3].value = formValuesMock.cvv
-}
 
 describe('handle', () => {
   beforeEach(() => {

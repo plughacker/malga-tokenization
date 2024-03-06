@@ -1,56 +1,29 @@
 import { fireEvent, waitFor } from '@testing-library/dom'
+
+import { AsyncTokenize } from './async-tokenize'
+import * as utilsValues from 'src/common/utils/form-values/form-values'
+import * as utilsElements from 'src/common/utils/form-elements/form-elements'
 import {
+  configureFormSubmissionMock,
   formElementsMock,
   formValuesMock,
   handleFormMock,
   malgaConfigurations,
-  configureFormSubmissionMock,
-} from '../../../tests/mocks/malga-tests-mocks'
-import { Malga } from '../../common/malga/malga'
-import { AsyncTokenize } from '../async-tokenize'
-import * as utilsValues from '../../common/utils/form-values/form-values'
-import * as utilsElements from '../../common/utils/form-elements/form-elements'
+} from 'tests/mocks/common-configurations'
+import { generateForm } from 'tests/mocks/form-dom'
+import { Malga } from 'src/common/malga'
 
 const onSubmit = vi.fn()
 
-vi.mock('../../common/malga/malga', async (importOriginal) => {
-  const Malga =
-    await importOriginal<typeof import('../../common/malga/malga')>()
+vi.mock('src/common/malga', async (importOriginal) => {
+  const Malga = await importOriginal<typeof import('src/common/malga')>()
   return {
     ...Malga,
     tokenization: vi.fn(),
   }
 })
 
-function generateForm(onSubmit: any) {
-  const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
-    handleFormMock()
-
-  form.setAttribute(formElementsMock.form, '')
-  form.onsubmit = onSubmit
-  form.id = 'form'
-  form.method = 'POST'
-  form.action = '/test'
-
-  holderNameInput.setAttribute(formElementsMock.holderName, '')
-  numberInput.setAttribute(formElementsMock.number, '')
-  cvvInput.setAttribute(formElementsMock.cvv, '')
-  expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-  document.body.appendChild(form)
-  form.appendChild(holderNameInput)
-  form.appendChild(numberInput)
-  form.appendChild(expirationDateInput)
-  form.appendChild(cvvInput)
-
-  const inputs = document.querySelectorAll('input')
-  inputs[0].value = formValuesMock.holderName
-  inputs[1].value = formValuesMock.number
-  inputs[2].value = formValuesMock.expirationDate
-  inputs[3].value = formValuesMock.cvv
-}
-
-describe('handle', () => {
+describe('async-tokenize', () => {
   beforeEach(() => {
     document.body.innerHTML = ''
   })
@@ -125,7 +98,6 @@ describe('handle', () => {
       const tokenIdInput = document.querySelector<HTMLInputElement>(
         'input[name="tokenId"]',
       )
-      console.log('tokenId: ', tokenIdInput)
       expect(tokenIdInput?.value).toBe('production-token-id')
     })
   })

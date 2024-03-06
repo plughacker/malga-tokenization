@@ -1,10 +1,11 @@
 import { fireEvent, waitFor } from '@testing-library/dom'
 import {
+  configureFormSubmissionMock,
   formElementsMock,
   formValuesMock,
   handleFormMock,
   malgaConfigurations,
-} from '../tests/mocks/malga-tests-mocks'
+} from '../tests/mocks/common-configurations'
 import { MalgaTokenization } from './tokenization'
 
 vi.mock('./common/malga', async (importOriginal) => {
@@ -43,12 +44,12 @@ function FormForInit(onSubmit: any) {
   inputs[2].value = formValuesMock.expirationDate
   inputs[3].value = formValuesMock.cvv
 }
-function FormForTokenize(onSubmit: any) {
+function FormForTokenize() {
   const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
     handleFormMock()
 
   form.setAttribute(formElementsMock.form, '')
-  form.onsubmit = onSubmit
+
   form.id = 'form'
   form.method = 'POST'
   form.action = '/test'
@@ -75,10 +76,7 @@ describe('init', () => {
     document.body.innerHTML = ''
   })
   test('should be possible to return the tokenId element', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
     FormForInit(onSubmit)
 
@@ -101,10 +99,7 @@ describe('init', () => {
     })
   })
   test('should be possible to return an error if form elements do not have values assigned', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
     const {
       form,
@@ -138,15 +133,9 @@ describe('init', () => {
     await waitFor(() => {
       expect(malgaTokenizationObject.init).rejects.toThrowError()
     })
-
-    const formElement = document.querySelector('form')
-    fireEvent.submit(formElement!)
   })
   test('should be possible to return an error if apiKey and clientId are passed empty', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-    onSubmit.mockImplementation((event) => {
-      event.preventDefault()
-    })
+    configureFormSubmissionMock()
 
     FormForInit(onSubmit)
 
@@ -162,9 +151,6 @@ describe('init', () => {
     await waitFor(() => {
       expect(malgaTokenizationObject.init).rejects.toThrowError()
     })
-
-    const form = document.querySelector('form')
-    fireEvent.submit(form!)
   })
 })
 describe('tokenize', () => {
@@ -172,32 +158,20 @@ describe('tokenize', () => {
     document.body.innerHTML = ''
   })
   test('should be possible to return a not falsy value equal to production-token-id', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
+    configureFormSubmissionMock()
     const malgaTokenizationObject = new MalgaTokenization(
       malgaConfigurations(false),
     )
-
-    FormForTokenize(handleSubmit)
-
+    FormForTokenize()
     const form = document.querySelector('form')
     fireEvent.submit(form!)
-
-    let tokenId: any
-
-    async function handleSubmit(event: any) {
-      event.preventDefault()
-
-      tokenId = await malgaTokenizationObject.tokenize()
-    }
-
+    const { tokenId } = await malgaTokenizationObject.tokenize()
     await waitFor(() => {
-      expect(tokenId.tokenId).toBeTruthy()
-      expect(tokenId.tokenId).toBe('production-token-id')
+      expect(tokenId).toBe('production-token-id')
     })
   })
   test('should be possible to return an error if form elements do not have values assigned', async () => {
-    window.HTMLFormElement.prototype.submit = () => {}
-
+    configureFormSubmissionMock()
     const malgaTokenizationObject = new MalgaTokenization(
       malgaConfigurations(false),
     )
@@ -211,7 +185,6 @@ describe('tokenize', () => {
     } = handleFormMock()
 
     form.setAttribute(formElementsMock.form, '')
-    form.onsubmit = handleSubmit
     form.id = 'form'
     form.method = 'POST'
     form.action = '/test'
@@ -230,14 +203,10 @@ describe('tokenize', () => {
     const form2 = document.querySelector('form')
     fireEvent.submit(form2!)
 
-    async function handleSubmit(event: any) {
-      event.preventDefault()
-
-      await expect(malgaTokenizationObject.tokenize()).rejects.toThrowError()
-    }
+    await expect(malgaTokenizationObject.tokenize()).rejects.toThrowError()
   })
-  test('should be possible to return an error if apiKey and clientId are passed empty', () => {
-    window.HTMLFormElement.prototype.submit = () => {}
+  test('should be possible to return an error if apiKey and clientId are passed empty', async () => {
+    configureFormSubmissionMock()
 
     const malgaConfigurationsEmpty = {
       apiKey: '',
@@ -248,15 +217,11 @@ describe('tokenize', () => {
       malgaConfigurationsEmpty,
     )
 
-    FormForTokenize(handleSubmit)
+    FormForTokenize()
 
     const form = document.querySelector('form')
     fireEvent.submit(form!)
 
-    async function handleSubmit(event: any) {
-      event.preventDefault()
-
-      await expect(malgaTokenizationObject.tokenize()).rejects.toThrowError()
-    }
+    await expect(malgaTokenizationObject.tokenize()).rejects.toThrowError()
   })
 })

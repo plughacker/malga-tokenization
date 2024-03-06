@@ -2,8 +2,8 @@ import {
   formElementsMock,
   formValuesMock,
   handleFormMock,
-} from '../../../../tests/mocks/malga-tests-mocks'
-import { getFormValues } from '../form-values/form-values'
+} from 'tests/mocks/common-configurations'
+import { getFormValues } from './form-values'
 
 function Form() {
   const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
@@ -63,7 +63,7 @@ describe('getFormValues', () => {
     expect(formValue.expirationDate).toBe('')
     expect(formValue.cvv).toBe('')
   })
-  test('should be possible to return error if the elements are not found', async () => {
+  test('should be possible to return error if the elements are not found', () => {
     Form()
 
     const inputs = document.querySelectorAll('input')
