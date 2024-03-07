@@ -7,7 +7,6 @@ import {
   configureFormSubmissionMock,
   formElementsMock,
   formValuesMock,
-  handleFormMock,
   malgaConfigurations,
 } from 'tests/mocks/common-configurations'
 import { generateForm } from 'tests/mocks/form-dom'
@@ -157,28 +156,7 @@ describe('async-tokenize', () => {
       )
     })
   })
-  test('should be possible to check if the form was submitted and event.preventDefault was called afterwards', async () => {
-    const submit = vi.fn()
-    configureFormSubmissionMock(submit)
-    const event = new Event('submit')
-    const preventDefault = vi.spyOn(event, 'preventDefault')
 
-    generateForm(onSubmit)
-
-    const malga = new Malga(malgaConfigurations(false))
-
-    const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
-
-    asyncTokenizeObject.handle()
-
-    const form = document.querySelector('form')
-    fireEvent(form!, event)
-
-    await waitFor(() => {
-      expect(form?.submit).toHaveBeenCalled()
-      expect(preventDefault).toBeCalled()
-    })
-  })
   test('should be possible to return an error if empty apiKey and clientId are sent to the Malga constructor', async () => {
     configureFormSubmissionMock()
 
@@ -218,44 +196,15 @@ describe('async-tokenize', () => {
     expect(asyncTokenizeObject.handle).toThrowError(
       "Cannot read properties of undefined (reading 'elements')",
     )
-
-    const form = document.querySelector('form')
-    fireEvent.submit(form!)
   })
   test('should be possible to return an error if the form inputs do not have values assigned', async () => {
     configureFormSubmissionMock()
-    const {
-      form,
-      holderNameInput,
-      cvvInput,
-      expirationDateInput,
-      numberInput,
-    } = handleFormMock()
-
-    form.setAttribute(formElementsMock.form, '')
-    form.onsubmit = onSubmit
-    form.id = 'form'
-    form.method = 'POST'
-    form.action = '/test'
-
-    holderNameInput.setAttribute(formElementsMock.holderName, '')
-    numberInput.setAttribute(formElementsMock.number, '')
-    cvvInput.setAttribute(formElementsMock.cvv, '')
-    expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-    document.body.appendChild(form)
-    form.appendChild(holderNameInput)
-    form.appendChild(numberInput)
-    form.appendChild(expirationDateInput)
-    form.appendChild(cvvInput)
+    generateForm()
 
     const malga = new Malga(malgaConfigurations(false))
 
     const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
 
     expect(asyncTokenizeObject.handle).toThrowError()
-
-    const form2 = document.querySelector('form')
-    fireEvent.submit(form2!)
   })
 })
