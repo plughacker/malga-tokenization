@@ -39,11 +39,6 @@ describe('async-tokenize', () => {
     const form = document.querySelector('form')
     fireEvent.submit(form!)
 
-    const cvvInput = document.querySelector(
-      'input[data-malga-tokenization-cvv]',
-    )
-    expect(form).toContain(cvvInput)
-
     await waitFor(() => {
       const tokenIdInput = document.querySelector<HTMLInputElement>(
         'input[name="tokenId"]',
@@ -53,7 +48,7 @@ describe('async-tokenize', () => {
       expect(tokenIdInput).toBeTruthy()
     })
   })
-  test('should be possible to return a value in tokenIdElement and if the settings include the sandbox: true option, the value must be sandox-token-id ', async () => {
+  test('should be return correct tokenId in sandbox environment ', async () => {
     configureFormSubmissionMock()
 
     generateForm(onSubmit)
@@ -74,7 +69,7 @@ describe('async-tokenize', () => {
       expect(tokenIdInput?.value).toBe('sandbox-token-id')
     })
   })
-  test('should be possible to return a value in tokenIdElement and if the settings not include the sandbox: true option, the value must be production-token-id', async () => {
+  test('should be return correct tokenId in production environment', async () => {
     configureFormSubmissionMock()
 
     generateForm(onSubmit)
@@ -174,9 +169,6 @@ describe('async-tokenize', () => {
     expect(asyncTokenizeObject.handle).toThrowError(
       "Cannot read properties of undefined (reading 'elements')",
     )
-
-    const form = document.querySelector('form')
-    fireEvent.submit(form!)
   })
   test('should be possible to throw an error when the elements passed are incompatible with those in the DOM', async () => {
     configureFormSubmissionMock()

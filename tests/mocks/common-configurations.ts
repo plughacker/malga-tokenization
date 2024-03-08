@@ -1,4 +1,4 @@
-import { MalgaFormElements } from '../../src/common/interfaces/form'
+import { MalgaFormElements } from 'src/common/interfaces/form'
 
 export function malgaConfigurations(isSandbox: boolean) {
   return {

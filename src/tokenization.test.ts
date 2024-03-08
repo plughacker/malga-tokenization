@@ -7,6 +7,7 @@ import {
   malgaConfigurations,
 } from '../tests/mocks/common-configurations'
 import { MalgaTokenization } from './tokenization'
+import { generateForm, generateFormEmptyValues } from 'tests/mocks/form-dom'
 
 vi.mock('./common/malga', async (importOriginal) => {
   const Malga = await importOriginal<typeof import('./common/malga')>()
@@ -79,7 +80,7 @@ describe('MalgaTokenization', () => {
     test('should be possible to return the tokenId element', async () => {
       configureFormSubmissionMock()
 
-      FormForInit(onSubmit)
+      generateForm(onSubmit)
 
       const malgaTokenizationObject = new MalgaTokenization(
         malgaConfigurations(false),
@@ -102,30 +103,7 @@ describe('MalgaTokenization', () => {
     test('should be possible to return an error if form elements do not have values assigned', async () => {
       configureFormSubmissionMock()
 
-      const {
-        form,
-        holderNameInput,
-        cvvInput,
-        expirationDateInput,
-        numberInput,
-      } = handleFormMock()
-
-      form.setAttribute(formElementsMock.form, '')
-      form.onsubmit = onSubmit
-      form.id = 'form'
-      form.method = 'POST'
-      form.action = '/test'
-
-      holderNameInput.setAttribute(formElementsMock.holderName, '')
-      numberInput.setAttribute(formElementsMock.number, '')
-      cvvInput.setAttribute(formElementsMock.cvv, '')
-      expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-      document.body.appendChild(form)
-      form.appendChild(holderNameInput)
-      form.appendChild(numberInput)
-      form.appendChild(expirationDateInput)
-      form.appendChild(cvvInput)
+      generateFormEmptyValues(onSubmit)
 
       const malgaTokenizationObject = new MalgaTokenization(
         malgaConfigurations(false),

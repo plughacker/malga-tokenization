@@ -1,8 +1,4 @@
 import {
-  formElementsMock,
-  handleFormMock,
-} from 'tests/mocks/common-configurations'
-import {
   createFormElement,
   getFormElements,
   removeFormElements,
@@ -12,42 +8,6 @@ import { generateForm } from 'tests/mocks/form-dom'
 const tokenId = '54595fec-87db-44f8-996a-2f4d6bf270b9'
 describe('form-elements', () => {
   describe('getFormElements', () => {
-    test('should be returned the elements correctly', () => {
-      const {
-        form,
-        holderNameInput,
-        cvvInput,
-        expirationDateInput,
-        numberInput,
-      } = handleFormMock()
-
-      form.setAttribute(formElementsMock.form, '')
-      holderNameInput.setAttribute(formElementsMock.holderName, '')
-      numberInput.setAttribute(formElementsMock.number, '')
-      cvvInput.setAttribute(formElementsMock.cvv, '')
-      expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-      document.body.appendChild(form)
-      form.appendChild(holderNameInput)
-      form.appendChild(numberInput)
-      form.appendChild(expirationDateInput)
-      form.appendChild(cvvInput)
-
-      const formElements = getFormElements({
-        form: 'data-malga-tokenization-form',
-        holderName: 'data-malga-tokenization-holder-name',
-        number: 'data-malga-tokenization-number',
-        expirationDate: 'data-malga-tokenization-expiration-date',
-        cvv: 'data-malga-tokenization-cvv',
-      })
-
-      expect(formElements.form).toBe(form)
-      expect(formElements.holderName).toBe(holderNameInput)
-      expect(formElements.number).toBe(numberInput)
-      expect(formElements.expirationDate).toBe(expirationDateInput)
-      expect(formElements.cvv).toBe(cvvInput)
-    })
-
     test('should be possible to find the elements in the dom', () => {
       generateForm()
 
@@ -69,21 +29,6 @@ describe('form-elements', () => {
     test("Should be returned null when elements aren't finded", () => {
       generateForm()
 
-      const formElements = getFormElements({
-        form: 'data-malga-form',
-        holderName: 'data-malga-holder-name',
-        number: 'data-malga-number',
-        expirationDate: 'data-malga-expiration-date',
-        cvv: 'data-malga-cvv',
-      })
-      expect(formElements.form).toBeNull()
-      expect(formElements.holderName).toBeNull()
-      expect(formElements.number).toBeNull()
-      expect(formElements.expirationDate).toBeNull()
-      expect(formElements.cvv).toBeNull()
-    })
-
-    test('should be possible to return null if there is no equal element in the DOM', () => {
       const formElements = getFormElements({
         form: 'data-malga-form',
         holderName: 'data-malga-holder-name',
