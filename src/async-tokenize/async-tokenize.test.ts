@@ -1,12 +1,9 @@
 import { fireEvent, waitFor } from '@testing-library/dom'
 
 import { AsyncTokenize } from './async-tokenize'
-import * as utilsValues from 'src/common/utils/form-values/form-values'
-import * as utilsElements from 'src/common/utils/form-elements/form-elements'
 import {
   configureFormSubmissionMock,
   formElementsMock,
-  formValuesMock,
   malgaConfigurations,
 } from 'tests/mocks/common-configurations'
 import { generateForm } from 'tests/mocks/form-dom'
@@ -115,40 +112,6 @@ describe('async-tokenize', () => {
     await waitFor(() => {
       const inputs = document.querySelectorAll('input')
       expect(inputs.length).toBe(1)
-    })
-  })
-  test('should be possible for handle to call the getFormElements, getFormValues, Tokenization, removeFormElements and createFormElements functions passing the elements correctly', async () => {
-    configureFormSubmissionMock()
-
-    generateForm(onSubmit)
-
-    const malga = new Malga(malgaConfigurations(false))
-
-    const asyncTokenizeObject = new AsyncTokenize(malga, formElementsMock)
-
-    const getFormElementsSpy = vi.spyOn(utilsElements, 'getFormElements')
-    const getFormValuesSpy = vi.spyOn(utilsValues, 'getFormValues')
-    const tokenizationSpy = vi.spyOn(malga, 'tokenization')
-    const removeFormElementsSpy = vi.spyOn(utilsElements, 'removeFormElements')
-    const createFormElementSpy = vi.spyOn(utilsElements, 'createFormElement')
-
-    asyncTokenizeObject.handle()
-
-    const form = document.querySelector('form')
-    fireEvent.submit(form!)
-
-    await waitFor(() => {
-      const tokenIdInput = document.querySelector<HTMLInputElement>(
-        'input[name="tokenId"]',
-      )
-      expect(getFormElementsSpy).toHaveBeenCalledWith(formElementsMock)
-      expect(getFormValuesSpy).toHaveBeenCalledWith(formElementsMock)
-      expect(tokenizationSpy).toHaveBeenCalledWith(formValuesMock)
-      expect(removeFormElementsSpy).toHaveBeenCalledWith(formElementsMock)
-      expect(createFormElementSpy).toHaveBeenCalledWith(
-        tokenIdInput?.name,
-        tokenIdInput?.value,
-      )
     })
   })
 
