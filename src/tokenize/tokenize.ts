@@ -1,6 +1,6 @@
 import { Malga } from 'src/common/malga'
 import { MalgaFormElements } from 'src/common/interfaces'
-import { getFormValues } from 'src/common/utils'
+import { getFormValues } from '../common/utils'
 
 export class Tokenize {
   constructor(

@@ -5,7 +5,7 @@ import {
   removeFormElements,
   createFormElement,
   getFormValues,
-} from 'src/common/utils'
+} from '../common/utils'
 
 export class AsyncTokenize {
   constructor(
@@ -33,8 +33,9 @@ export class AsyncTokenize {
       removeFormElements(this.elements)
       const tokenIdElement = createFormElement('tokenId', tokenId)
 
-      form.appendChild(tokenIdElement)
-      form.submit()
+      form?.appendChild(tokenIdElement)
+
+      form?.submit()
     })
   }
 }
