@@ -1,16 +1,11 @@
 import { http, HttpResponse, PathParams } from 'msw'
+import { MalgaCreateTokenResponse } from 'src/common/interfaces/malga'
 
-export type malgaRequestBody = {
-  cardHolderName: string
-  cardNumber: string
-  cardExpirationDate: string
-  cardCvv: string
-}
 export const handlers = [
   http.post('https://sandbox-api.malga.io/v1/tokens', () => {
     return HttpResponse.json({ tokenId: 'sandbox-token-id' })
   }),
-  http.post<PathParams, malgaRequestBody>(
+  http.post<PathParams, MalgaCreateTokenResponse>(
     'https://api.malga.io/v1/tokens',
     async ({ request }) => {
       const apiKey = request.headers.get('X-Api-Key')
