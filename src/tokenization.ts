@@ -1,17 +1,13 @@
 import { Malga } from './common/malga'
 
-import type {
-  MalgaConfigurations,
-  MalgaConfigurationsElements,
-  MalgaFormElements,
-} from 'src/common/interfaces'
+import type { MalgaConfigurations } from 'src/common/interfaces'
 
 import { Tokenize } from './tokenize'
 import { AsyncTokenize } from './async-tokenize'
+import { loaded } from './common/utils'
 
 export class MalgaTokenization {
   private readonly malga: Malga
-  private readonly elements: MalgaFormElements
 
   constructor(configurations: MalgaConfigurations) {
     if (!configurations.apiKey || !configurations.clientId) {
@@ -21,18 +17,7 @@ export class MalgaTokenization {
     }
 
     this.malga = new Malga(configurations)
-    this.elements = this.handleElements(configurations.options?.elements)
-  }
-
-  private handleElements(elements?: MalgaConfigurationsElements) {
-    return {
-      form: elements?.form || 'data-malga-tokenization-form',
-      holderName: elements?.holderName || 'data-malga-tokenization-holder-name',
-      cvv: elements?.cvv || 'data-malga-tokenization-cvv',
-      expirationDate:
-        elements?.expirationDate || 'data-malga-tokenization-expiration-date',
-      number: elements?.number || 'data-malga-tokenization-number',
-    }
+    loaded(configurations.config.fields)
   }
 
   public async init() {
