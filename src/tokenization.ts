@@ -6,8 +6,8 @@ import type {
   MalgaFormElements,
 } from 'src/common/interfaces'
 
-import { AsyncTokenize } from './async-tokenize'
 import { Tokenize } from './tokenize'
+import { AsyncTokenize } from './async-tokenize'
 
 export class MalgaTokenization {
   private readonly malga: Malga

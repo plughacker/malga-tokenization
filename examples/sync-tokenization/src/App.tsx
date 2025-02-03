@@ -5,6 +5,34 @@ const malgaTokenization = new MalgaTokenization({
   apiKey: '<YOUR_API_KEY>',
   clientId: '<YOUR_CLIENT_ID>',
   options: { sandbox: true },
+  config: {
+    fields: {
+      cardNumber: {
+        selector: '#card-number',
+        container: 'card-number',
+        placeholder: 'Card Number',
+        type: 'number',
+      },
+      cardHolderName: {
+        selector: '#card-holder-name',
+        container: 'card-holder-name',
+        placeholder: 'Card Holder Name',
+        type: 'text',
+      },
+      cardCvv: {
+        selector: '#card-cvv',
+        container: 'card-cvv',
+        placeholder: 'Card CVV',
+        type: 'number',
+      },
+      cardExpirationDate: {
+        selector: '#card-expiration-date',
+        container: 'card-expiration-date',
+        placeholder: 'Card Expiration Date',
+        type: 'text',
+      },
+    },
+  },
 })
 
 export function App() {
