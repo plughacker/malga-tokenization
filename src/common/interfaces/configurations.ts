@@ -11,7 +11,7 @@ interface MalgaInputFieldStyles {
   [key: string]: string
 }
 
-interface MalgaInputFieldConfiguration {
+export interface MalgaInputFieldConfiguration {
   container: string
   selector: string
   placeholder?: string

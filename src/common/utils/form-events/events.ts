@@ -10,7 +10,7 @@ export class EventPostMessage {
 }
 
 export class EventListener {
-  constructor(private action: Window | HTMLElement) {}
+  constructor(private action: Window | HTMLElement | Document) {}
 
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   get(type: string, eventHandler: (event: any) => void) {
