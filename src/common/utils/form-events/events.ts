@@ -3,7 +3,6 @@ export class EventPostMessage {
     private action: Window,
     private origin: '*',
   ) {}
-
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   send(type?: string, data?: any, origin?: string) {
     this.action.postMessage({ type, data }, origin ?? this.origin)

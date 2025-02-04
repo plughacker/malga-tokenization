@@ -1,5 +1,4 @@
 import type { MalgaInputFieldConfigurations } from 'src/common/interfaces'
-import { EventPostMessage } from '../form-events'
 import { create } from './create'
 import { camelToKebabCase } from './parsedString'
 import { Event } from 'src/common/enums'
@@ -13,28 +12,53 @@ export function loaded(config: MalgaInputFieldConfigurations) {
     const iframe = create(field)
     const iframeName = camelToKebabCase(field)
 
-    if (!iframe || !iframe.contentWindow) {
+    if (!iframe) {
+      console.error(iframe, field)
       console.error(`Error to access the iframe of ${field}`)
       return
     }
 
-    const parentNode = document.querySelector(fieldConfig.container)
+    document.addEventListener('DOMContentLoaded', () => {
+      const waitForElement = (
+        selector: string,
+        callback: (element: HTMLElement) => void,
+      ) => {
+        const element = document.querySelector(selector)
 
-    if (!parentNode) {
-      console.error(`Container not found ${field}: ${fieldConfig.container}`)
-      return
-    }
+        if (element) {
+          callback(element as HTMLElement)
+          return
+        }
 
-    parentNode?.appendChild(iframe)
+        const observer = new MutationObserver((_, observer) => {
+          const element = document.querySelector(selector)
+          if (element) {
+            observer.disconnect()
+            callback(element as HTMLElement)
+          }
+        })
 
-    const iframePostmessage = new EventPostMessage(iframe.contentWindow, '*')
+        observer.observe(document.body, { childList: true, subtree: true })
+      }
+
+      waitForElement(fieldConfig.container, (div) => {
+        div?.appendChild(iframe)
+      })
+    })
 
     iframe.onload = () => {
-      iframePostmessage.send(Event.SetTypeField, {
-        fieldType: iframeName,
-      })
+      if (!iframe.contentWindow) {
+        console.error('iframe.contentWindow is null, cannot send postMessage')
+        return
+      }
 
-      iframe.onload = null
+      iframe.contentWindow.postMessage(
+        {
+          type: Event.SetTypeField,
+          fieldType: iframeName,
+        },
+        '*',
+      )
     }
   }
 }
