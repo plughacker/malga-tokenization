@@ -6,32 +6,29 @@ export interface MalgaConfigurationsElements {
   number?: string
 }
 
-interface FieldStyles {
+interface MalgaInputFieldStyles {
   input: string
   [key: string]: string
 }
 
-interface FieldOptions {
-  container: string | HTMLElement
+interface MalgaInputFieldConfiguration {
+  container: string
   selector: string
   placeholder?: string
-  stylesField?: FieldStyles
+  stylesField?: MalgaInputFieldStyles
   type?: string
+}
+
+export interface MalgaInputFieldConfigurations {
+  fields: { [fieldName: string]: MalgaInputFieldConfiguration }
+  styles?: MalgaInputFieldStyles
+  preventAutofill?: boolean
 }
 
 export interface MalgaConfigurations {
   apiKey: string
   clientId: string
-  config: {
-    fields: {
-      cardNumber: FieldOptions
-      cardHolderName: FieldOptions
-      cardCvv: FieldOptions
-      cardExpirationDate: FieldOptions
-    }
-    styles?: {}
-    preventAutofill?: boolean
-  }
+  config: MalgaInputFieldConfigurations
   options?: {
     sandbox?: boolean
     elements?: MalgaConfigurationsElements

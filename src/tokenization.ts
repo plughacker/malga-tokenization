@@ -17,16 +17,17 @@ export class MalgaTokenization {
     }
 
     this.malga = new Malga(configurations)
-    loaded(configurations.config.fields)
+
+    loaded(configurations.config)
   }
 
   public async init() {
-    const asyncTokenize = new AsyncTokenize(this.malga, this.elements)
+    const asyncTokenize = new AsyncTokenize(this.malga)
     return asyncTokenize.handle()
   }
 
   public async tokenize() {
-    const tokenize = new Tokenize(this.malga, this.elements)
+    const tokenize = new Tokenize(this.malga)
     return tokenize.handle()
   }
 }
