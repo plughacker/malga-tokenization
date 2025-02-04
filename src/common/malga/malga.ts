@@ -2,7 +2,8 @@ import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios'
 
 import { MalgaConfigurations } from 'src/common/interfaces'
 
-import { MalgaErrorResponse, type TokenizationPayload } from './interfaces'
+import { MalgaErrorResponse, TokenizationPayload } from './interfaces'
+
 export class Malga {
   private readonly api: AxiosInstance
 
@@ -39,6 +40,7 @@ export class Malga {
         },
       })
     }
+
     if (error.response.status === 403) {
       return Promise.reject({
         error: {

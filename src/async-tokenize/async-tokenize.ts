@@ -1,11 +1,11 @@
-import type { MalgaFormElements } from 'src/common/interfaces'
 import { Malga } from 'src/common/malga'
+import { MalgaFormElements } from 'src/common/interfaces'
 import {
-  createFormElement,
   getFormElements,
-  getFormValues,
   removeFormElements,
-} from 'src/common/utils'
+  createFormElement,
+  getFormValues,
+} from '../common/utils'
 
 export class AsyncTokenize {
   constructor(
