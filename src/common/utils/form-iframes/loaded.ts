@@ -8,7 +8,7 @@ export function loaded(config: MalgaInputFieldConfigurations) {
   const fields = Object.keys(config.fields)
 
   for (const field of fields) {
-    const fieldConfig = config.fields[field]
+    const fieldConfig = config.fields[field as keyof typeof config.fields]
 
     const iframe = create(field)
     const iframeName = camelToKebabCase(field)

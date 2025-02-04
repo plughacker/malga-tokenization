@@ -20,7 +20,12 @@ interface MalgaInputFieldConfiguration {
 }
 
 export interface MalgaInputFieldConfigurations {
-  fields: { [fieldName: string]: MalgaInputFieldConfiguration }
+  fields: {
+    cardNumber: MalgaInputFieldConfiguration
+    cardHolderName: MalgaInputFieldConfiguration
+    cardCvv: MalgaInputFieldConfiguration
+    cardExpirationDate: MalgaInputFieldConfiguration
+  }
   styles?: MalgaInputFieldStyles
   preventAutofill?: boolean
 }
