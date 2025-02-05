@@ -13,7 +13,6 @@ export function loaded(config: MalgaInputFieldConfigurations) {
     const iframeName = camelToKebabCase(field)
 
     if (!iframe) {
-      console.error(iframe, field)
       console.error(`Error to access the iframe of ${field}`)
       return
     }

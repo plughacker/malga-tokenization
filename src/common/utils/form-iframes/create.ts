@@ -1,5 +1,5 @@
 import type { MalgaInputFieldConfiguration } from 'src/common/interfaces'
-import { observerElementsInDOM } from './observer'
+import { waitingForElement } from './observer'
 import { camelToKebabCase } from './parsedString'
 
 export function create(
@@ -15,7 +15,9 @@ export function create(
   iframe.setAttribute('height', '100%')
   iframe.setAttribute('frameborder', '0')
 
-  observerElementsInDOM(fieldConfig, iframe)
+  waitingForElement(fieldConfig.container, (parentNode) => {
+    parentNode?.appendChild(iframe)
+  })
 
   return iframe
 }

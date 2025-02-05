@@ -1,14 +1,8 @@
-import { MalgaFormElements } from 'src/common/interfaces'
-
-import { getFormElements } from '../form-elements'
-
-export function getFormValues(elements: MalgaFormElements) {
-  const formElements = getFormElements(elements)
-
+export function getFormValues() {
   return {
-    holderName: formElements.holderName!.value,
-    cvv: formElements.cvv!.value,
-    expirationDate: formElements.expirationDate!.value,
-    number: formElements.number!.value,
+    holderName: 'Lariane S Guerra',
+    cvv: '210',
+    expirationDate: '12/2028',
+    number: '5520081296334790',
   }
 }
