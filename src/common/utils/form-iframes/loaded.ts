@@ -27,6 +27,7 @@ export function loaded(config: MalgaInputFieldConfigurations) {
         {
           type: Event.SetTypeField,
           fieldType: iframeName,
+          fieldConfig: fieldConfig,
         },
         '*',
       )

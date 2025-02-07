@@ -2,6 +2,7 @@ import type { MalgaConfigurations } from 'src/common/interfaces'
 
 import { Tokenize } from './tokenize'
 import { loaded } from './common/utils'
+import { change } from './common/utils/form-iframes/change'
 
 export class MalgaTokenization {
   private readonly configurations: MalgaConfigurations
@@ -16,6 +17,7 @@ export class MalgaTokenization {
     this.configurations = configurations
 
     loaded(configurations.config)
+    change()
   }
 
   public async tokenize() {

@@ -17,6 +17,7 @@ export function create(
 
   waitingForElement(fieldConfig.container, (parentNode) => {
     parentNode?.appendChild(iframe)
+    parentNode.classList.add('malga-hosted-field')
   })
 
   return iframe
