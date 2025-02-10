@@ -16,7 +16,7 @@ export class MalgaTokenization {
 
     this.configurations = configurations
 
-    loaded(configurations.config)
+    loaded(configurations.options?.config)
     change()
   }
 

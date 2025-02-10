@@ -24,6 +24,7 @@ export function submit(configurations: MalgaConfigurations) {
         clientId: configurations.clientId,
         apiKey: configurations.apiKey,
       },
+      sandbox: configurations.options?.sandbox,
     },
     '*',
   )

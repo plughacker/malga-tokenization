@@ -1,11 +1,3 @@
-export interface MalgaConfigurationsElements {
-  form?: string
-  holderName?: string
-  cvv?: string
-  expirationDate?: string
-  number?: string
-}
-
 interface MalgaInputFieldStyles {
   input: string
   [key: string]: string
@@ -13,10 +5,11 @@ interface MalgaInputFieldStyles {
 
 export interface MalgaInputFieldConfiguration {
   container: string
-  selector: string
+  // selector: string
   placeholder?: string
-  stylesField?: MalgaInputFieldStyles
   type?: string
+  needMask?: boolean
+  defaultValidation?: boolean
 }
 
 export interface MalgaInputFieldConfigurations {
@@ -33,9 +26,8 @@ export interface MalgaInputFieldConfigurations {
 export interface MalgaConfigurations {
   apiKey: string
   clientId: string
-  config: MalgaInputFieldConfigurations
-  options?: {
+  options: {
+    config: MalgaInputFieldConfigurations
     sandbox?: boolean
-    elements?: MalgaConfigurationsElements
   }
 }

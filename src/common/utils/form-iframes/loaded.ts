@@ -1,7 +1,7 @@
 import type { MalgaInputFieldConfigurations } from 'src/common/interfaces'
 import { create } from './create'
-import { camelToKebabCase } from './parsedString'
 import { Event } from 'src/common/enums'
+import { camelToKebabCase } from './parsedString'
 
 export function loaded(config: MalgaInputFieldConfigurations) {
   const fields = Object.keys(config.fields)
