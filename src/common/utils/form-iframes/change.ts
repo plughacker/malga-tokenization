@@ -2,7 +2,6 @@ import { EventListener } from '../form-events'
 
 export function change() {
   const windowMessage = new EventListener(window.parent)
-  // const validateButton: { fieldType: string; isValid: boolean }[] = []
 
   windowMessage.listener('message', (event) => {
     const { type, data } = event.data
@@ -13,9 +12,6 @@ export function change() {
     if (type === 'validation') {
       const isValid = data.isValid
       const isEmpty = data.isEmpty
-      // const fieldType = data.fieldType
-
-      // validateButton.push({ fieldType, isValid })
 
       if (isEmpty) {
         parentNode?.classList.remove('malga-hosted-field-valid')

@@ -1,8 +1,3 @@
-interface MalgaInputFieldStyles {
-  input: string
-  [key: string]: string
-}
-
 export interface MalgaInputFieldConfiguration {
   container: string
   // selector: string
@@ -19,7 +14,7 @@ export interface MalgaInputFieldConfigurations {
     cardCvv: MalgaInputFieldConfiguration
     cardExpirationDate: MalgaInputFieldConfiguration
   }
-  styles?: MalgaInputFieldStyles
+  styles?: any
   preventAutofill?: boolean
 }
 
