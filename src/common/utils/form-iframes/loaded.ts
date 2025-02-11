@@ -17,19 +17,6 @@ export function loaded(config: MalgaInputFieldConfigurations) {
       return
     }
 
-    const parsedFieldStyle = Object.keys(config.styles).reduce(
-      (acc: { [key: string]: any }, key) => {
-        acc[`${key}`] = config.styles[key]
-        return acc
-      },
-      {},
-    )
-
-    const configStylesObject = {
-      ...parsedFieldStyle,
-      ...config.styles,
-    }
-
     iframe.onload = () => {
       if (!iframe.contentWindow) {
         console.error('iframe.contentWindow is null, cannot send postMessage')
@@ -41,8 +28,8 @@ export function loaded(config: MalgaInputFieldConfigurations) {
           type: Event.SetTypeField,
           fieldType: iframeName,
           fieldConfig: fieldConfig,
-          styles: configStylesObject,
-          preventAutofill: config.preventAutofill,
+          styles: config.styles,
+          preventAutofill: config.preventAutofill ?? true,
         },
         '*',
       )
