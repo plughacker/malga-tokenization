@@ -10,6 +10,7 @@ export function change() {
     if (!parentNode) return
 
     if (type === 'validation') {
+      console.log(event.data)
       const isValid = data.isValid
       const isEmpty = data.isEmpty
 
