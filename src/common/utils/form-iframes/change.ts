@@ -1,3 +1,4 @@
+import { eventsEmitter } from 'src/tokenization'
 import { EventListener } from '../form-events'
 
 export function change() {
@@ -10,9 +11,11 @@ export function change() {
     if (!parentNode) return
 
     if (type === 'validation') {
-      console.log(event.data)
       const isValid = data.isValid
       const isEmpty = data.isEmpty
+      const isError = data.isError
+
+      eventsEmitter.emit('teste', { error: isError })
 
       if (isEmpty) {
         parentNode?.classList.remove('malga-hosted-field-valid')

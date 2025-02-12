@@ -5,6 +5,8 @@ import { loaded } from './common/utils'
 import { change } from './common/utils/form-iframes/change'
 import { Events } from './events/events'
 
+export const eventsEmitter = new Events()
+
 export class MalgaTokenization {
   private readonly configurations: MalgaConfigurations
 
@@ -27,7 +29,6 @@ export class MalgaTokenization {
   }
 
   public on() {
-    const on = new Events()
-    return on.on
+    return eventsEmitter.on
   }
 }
