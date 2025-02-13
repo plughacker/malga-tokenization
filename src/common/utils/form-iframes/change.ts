@@ -28,6 +28,7 @@ export function change() {
         field: data.fieldType,
         error: data.error,
         valid: data.valid,
+        parent: parentNode,
       })
     }
 
