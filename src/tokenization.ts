@@ -28,7 +28,7 @@ export class MalgaTokenization {
     return tokenize.handle()
   }
 
-  public on() {
-    return eventsEmitter.on
+  public on(type: string, eventHandler: (event: any) => void) {
+    return eventsEmitter.on(type, eventHandler)
   }
 }

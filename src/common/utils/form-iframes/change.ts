@@ -13,9 +13,10 @@ export function change() {
     if (type === 'validation') {
       const isValid = data.isValid
       const isEmpty = data.isEmpty
-      const isError = data.isError
 
-      eventsEmitter.emit('teste', { error: isError })
+      console.log('evento no validation', event.data)
+
+      eventsEmitter.emit('validate', event)
 
       if (isEmpty) {
         parentNode?.classList.remove('malga-hosted-field-valid')
