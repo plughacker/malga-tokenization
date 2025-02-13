@@ -6,6 +6,7 @@ export function change() {
 
   windowMessage.listener('message', (event) => {
     const { type, data } = event.data
+    console.log('type', type)
     const parentNode = document.querySelector(`#${data?.fieldType}`)
 
     if (!parentNode) return
@@ -14,12 +15,12 @@ export function change() {
       const isValid = data.valid
       const isEmpty = data.empty
       const isPotentiallyValid = data.potentialValid
-      console.log({ isPotentiallyValid })
-      //const error = data.error
 
-      console.log('evento no validation', event.data)
-
-      eventsEmitter.emit('validate', event)
+      eventsEmitter.emit('validate', {
+        field: data.fieldType,
+        error: data.error,
+        valid: data.valid,
+      })
 
       if (isEmpty || isPotentiallyValid) {
         parentNode?.classList.remove('malga-hosted-field-valid')
