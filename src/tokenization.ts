@@ -3,7 +3,7 @@ import type { MalgaConfigurations } from 'src/common/interfaces'
 import { Tokenize } from './tokenize'
 import { loaded } from './common/utils'
 import { change } from './common/utils/form-iframes/change'
-import { Events } from './events/events'
+import { Events } from './events'
 
 export const eventsEmitter = new Events()
 
