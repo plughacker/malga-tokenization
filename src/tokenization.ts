@@ -1,8 +1,7 @@
 import type { MalgaConfigurations } from 'src/common/interfaces'
 
 import { Tokenize } from './tokenize'
-import { Events, loaded } from './common/utils'
-import { change } from './common/utils/form-iframes/change'
+import { Events, listener, loaded } from './common/utils'
 
 export const eventsEmitter = new Events()
 
@@ -19,7 +18,7 @@ export class MalgaTokenization {
     this.configurations = configurations
 
     loaded(configurations.options?.config)
-    change()
+    listener()
   }
 
   public async tokenize() {

@@ -1,6 +1,6 @@
 import { eventsEmitter } from 'src/tokenization'
 
-export function validation(parentNode: any, data: any) {
+export function validation(data: any, parentNode: Element | null) {
   const isValid = data.valid
   const isEmpty = data.empty
   const isPotentiallyValid = data.potentialValid
