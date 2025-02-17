@@ -1,17 +1,12 @@
-import { Malga } from './common/malga'
+import type { MalgaConfigurations } from 'src/common/interfaces'
 
-import type {
-  MalgaConfigurations,
-  MalgaConfigurationsElements,
-  MalgaFormElements,
-} from 'src/common/interfaces'
-
-import { AsyncTokenize } from './async-tokenize'
 import { Tokenize } from './tokenize'
+import { Events, listener, loaded } from './common/utils'
+
+export const eventsEmitter = new Events()
 
 export class MalgaTokenization {
-  private readonly malga: Malga
-  private readonly elements: MalgaFormElements
+  private readonly configurations: MalgaConfigurations
 
   constructor(configurations: MalgaConfigurations) {
     if (!configurations.apiKey || !configurations.clientId) {
@@ -20,28 +15,18 @@ export class MalgaTokenization {
       )
     }
 
-    this.malga = new Malga(configurations)
-    this.elements = this.handleElements(configurations.options?.elements)
-  }
+    this.configurations = configurations
 
-  private handleElements(elements?: MalgaConfigurationsElements) {
-    return {
-      form: elements?.form || 'data-malga-tokenization-form',
-      holderName: elements?.holderName || 'data-malga-tokenization-holder-name',
-      cvv: elements?.cvv || 'data-malga-tokenization-cvv',
-      expirationDate:
-        elements?.expirationDate || 'data-malga-tokenization-expiration-date',
-      number: elements?.number || 'data-malga-tokenization-number',
-    }
-  }
-
-  public async init() {
-    const asyncTokenize = new AsyncTokenize(this.malga, this.elements)
-    return asyncTokenize.handle()
+    loaded(configurations.options?.config)
+    listener()
   }
 
   public async tokenize() {
-    const tokenize = new Tokenize(this.malga, this.elements)
+    const tokenize = new Tokenize(this.configurations)
     return tokenize.handle()
+  }
+
+  public on(type: string, eventHandler: (event: any) => void) {
+    return eventsEmitter.on(type, eventHandler)
   }
 }

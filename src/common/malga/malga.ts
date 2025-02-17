@@ -20,10 +20,10 @@ export class Malga {
 
   private getBaseUrl() {
     if (this.configurations.options?.sandbox) {
-      return 'https://sandbox-api.malga.io/v1'
+      return 'https://sandbox-api.dev.malga.io/v1'
     }
 
-    return 'https://api.malga.io/v1'
+    return 'https://api.dev.malga.io/v1'
   }
 
   private handleSuccess(response: AxiosResponse) {
