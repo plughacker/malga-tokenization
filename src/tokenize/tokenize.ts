@@ -17,6 +17,11 @@ export class Tokenize {
 
     return new Promise((resolve) => {
       windowData.listener('message', (event) => {
+        if (event.origin !== 'https://develop.d3krxmg1839vaa.amplifyapp.com') {
+          //URL DA APLICAÇÃO
+          return console.error('Unauthorized')
+        }
+
         if (event.data.type === Event.Tokenize) {
           try {
             resolve(event.data.data)

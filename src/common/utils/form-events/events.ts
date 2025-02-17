@@ -1,7 +1,7 @@
 export class EventPostMessage {
   constructor(
     private action: Window,
-    private origin: '*',
+    private origin: string,
   ) {}
 
   send(type?: string, data?: any, origin?: string) {

@@ -17,15 +17,11 @@ export function submit(configurations: MalgaConfigurations) {
     '*',
   )
 
-  iframePostMessage.send(
-    Event.Submit,
-    {
-      authorizationData: {
-        clientId: configurations.clientId,
-        apiKey: configurations.apiKey,
-      },
-      sandbox: configurations.options?.sandbox,
+  iframePostMessage.send(Event.Submit, {
+    authorizationData: {
+      clientId: configurations.clientId,
+      apiKey: configurations.apiKey,
     },
-    '*',
-  )
+    sandbox: configurations.options?.sandbox,
+  })
 }

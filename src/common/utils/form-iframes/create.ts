@@ -10,7 +10,7 @@ export function create(
   const iframeName = camelToKebabCase(type)
 
   iframe.setAttribute('name', iframeName)
-  iframe.setAttribute('src', 'https://develop.d3krxmg1839vaa.amplifyapp.com/')
+  iframe.setAttribute('src', 'https://develop.d3krxmg1839vaa.amplifyapp.com/') //URL DA APLICAÇÃO
   iframe.setAttribute('width', '100%')
   iframe.setAttribute('height', '100%')
   iframe.setAttribute('frameborder', '0')

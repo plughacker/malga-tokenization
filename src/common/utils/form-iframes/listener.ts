@@ -5,6 +5,7 @@ export function listener() {
   const windowMessage = new EventListener(window.parent)
 
   windowMessage.listener('message', (event) => {
+    if (event.origin !== 'https://develop.d3krxmg1839vaa.amplifyapp.com') return //URL DA APLICAÇÃO
     const { type, data } = event.data
 
     const parentNode = document.querySelector(`#${data?.fieldType}`)

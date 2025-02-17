@@ -31,7 +31,7 @@ export function loaded(config: MalgaInputFieldConfigurations) {
           styles: config.styles,
           preventAutofill: config.preventAutofill ?? true,
         },
-        '*',
+        'https://develop.d3krxmg1839vaa.amplifyapp.com/', //URL DA APLICAÇÃO
       )
     }
   }
