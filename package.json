@@ -42,9 +42,13 @@
     "lint": "yarn lint:check && yarn format:check && prettier --write .",
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "test": "vitest",
-    "test:ci": "vitest --run"
+    "test:ci": "vitest --run",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
   },
   "dependencies": {
+    "@changesets/cli": "^2.28.0",
     "axios": "^1.6.2"
   },
   "devDependencies": {

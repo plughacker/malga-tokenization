@@ -1,8 +1,9 @@
 name: release
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - 'release/*'
 
 jobs:
   build:
@@ -37,14 +38,27 @@ jobs:
       packages: write
       contents: read
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
           cache: yarn
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: yarn publish --access public
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Changeset
+        id: changeset
+        uses: changesets/action@v1
+        with:
+          version: yarn version
+          commit: 'chore: update version for release'
+          title: 'chore: update version for release'
+          publish: yarn release
+          createGithubReleases: false
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
