@@ -1,3 +1,4 @@
+import { CSSClasses } from 'src/enums'
 import type { MalgaInputFieldConfiguration } from 'src/interfaces'
 import { camelToKebabCase, waitingForElement } from 'src/utils'
 
@@ -16,7 +17,7 @@ export function create(
 
   waitingForElement(fieldConfig.container, (parentNode) => {
     parentNode?.appendChild(iframe)
-    parentNode.classList.add('malga-hosted-field')
+    parentNode.classList.add(CSSClasses.Default)
   })
 
   return iframe

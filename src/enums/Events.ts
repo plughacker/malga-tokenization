@@ -7,4 +7,13 @@ export enum Event {
   Tokenize = 'tokenize',
   UpdateField = 'updateField',
   SetTypeField = 'setTypeField',
+  CardTypeChanged = 'cardTypeChanged',
+  Validity = 'validity',
+}
+
+export enum EventEmits {
+  Validity = 'validity',
+  CardTypeChange = 'cardTypeChanged',
+  Focus = 'focus',
+  Blur = 'blur',
 }
