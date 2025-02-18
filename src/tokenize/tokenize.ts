@@ -1,6 +1,7 @@
-import { Event } from 'src/common/enums'
-import type { MalgaConfigurations } from 'src/common/interfaces'
-import { EventListener, submit } from 'src/common/utils'
+import { Event } from 'src/enums'
+import { EventListener } from 'src/events'
+import { submit } from 'src/iframes'
+import type { MalgaConfigurations } from 'src/interfaces'
 
 type TokenizeResponse = {
   tokenId: string

@@ -1,6 +1,6 @@
-import type { MalgaConfigurations } from 'src/common/interfaces'
-import { EventPostMessage } from '../form-events'
-import { Event } from 'src/common/enums'
+import type { MalgaConfigurations } from 'src/interfaces'
+import { Event } from 'src/enums'
+import { EventPostMessage } from 'src/events'
 
 export function submit(configurations: MalgaConfigurations) {
   const iframeCardNumber = document.querySelector(

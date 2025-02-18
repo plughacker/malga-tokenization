@@ -45,6 +45,7 @@ function FormForInit(onSubmit: any) {
   inputs[2].value = formValuesMock.expirationDate
   inputs[3].value = formValuesMock.cvv
 }
+
 function FormForTokenize() {
   const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
     handleFormMock()

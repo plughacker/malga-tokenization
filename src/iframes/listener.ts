@@ -1,5 +1,5 @@
+import { EventListener, validation } from 'src/events'
 import { eventsEmitter } from 'src/tokenization'
-import { EventListener, validation } from '../form-events'
 
 export function listener() {
   const windowMessage = new EventListener(window.parent)

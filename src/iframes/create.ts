@@ -1,6 +1,5 @@
-import type { MalgaInputFieldConfiguration } from 'src/common/interfaces'
-import { waitingForElement } from './observer'
-import { camelToKebabCase } from './parsedString'
+import type { MalgaInputFieldConfiguration } from 'src/interfaces'
+import { camelToKebabCase, waitingForElement } from 'src/utils'
 
 export function create(
   type: string,

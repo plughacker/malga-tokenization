@@ -1,7 +1,8 @@
-import type { MalgaConfigurations } from 'src/common/interfaces'
+import type { MalgaConfigurations } from 'src/interfaces'
 
 import { Tokenize } from './tokenize'
-import { Events, listener, loaded } from './common/utils'
+import { Events } from './events'
+import { listener, loaded } from './iframes'
 
 export const eventsEmitter = new Events()
 
