@@ -2,6 +2,7 @@ import type { MalgaInputFieldConfigurations } from 'src/interfaces'
 import { create } from './create'
 import { Event } from 'src/enums'
 import { camelToKebabCase } from 'src/utils'
+import { URL_HOSTED_FIELD } from '../constants'
 
 export function loaded(config: MalgaInputFieldConfigurations) {
   const fields = Object.keys(config.fields)
@@ -31,7 +32,7 @@ export function loaded(config: MalgaInputFieldConfigurations) {
           styles: config.styles,
           preventAutofill: config.preventAutofill ?? true,
         },
-        'https://develop.d3krxmg1839vaa.amplifyapp.com/', //URL DA APLICAÇÃO
+        URL_HOSTED_FIELD,
       )
     }
   }

@@ -1,6 +1,7 @@
 import { CSSClasses } from 'src/enums'
 import type { MalgaInputFieldConfiguration } from 'src/interfaces'
 import { camelToKebabCase, waitingForElement } from 'src/utils'
+import { URL_HOSTED_FIELD } from '../constants'
 
 export function create(
   type: string,
@@ -10,7 +11,7 @@ export function create(
   const iframeName = camelToKebabCase(type)
 
   iframe.setAttribute('name', iframeName)
-  iframe.setAttribute('src', 'https://develop.d3krxmg1839vaa.amplifyapp.com/') //URL DA APLICAÇÃO
+  iframe.setAttribute('src', URL_HOSTED_FIELD)
   iframe.setAttribute('width', '100%')
   iframe.setAttribute('height', '100%')
   iframe.setAttribute('frameborder', '0')
