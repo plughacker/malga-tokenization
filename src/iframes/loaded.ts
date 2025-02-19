@@ -9,7 +9,6 @@ export function loaded(config: MalgaInputFieldConfigurations) {
 
   for (const field of fields) {
     const fieldConfig = config.fields[field as keyof typeof config.fields]
-
     const iframe = create(field, fieldConfig)
     const iframeName = camelToKebabCase(field)
 
