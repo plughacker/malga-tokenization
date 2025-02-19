@@ -4,9 +4,8 @@ import { eventsEmitter } from 'src/tokenization'
 
 export function listener() {
   const windowMessage = new EventListener(window.parent)
-  console.log('oi')
+
   windowMessage.listener('message', (event) => {
-    console.log(event)
     if (event.origin !== 'https://develop.d3krxmg1839vaa.amplifyapp.com') return //URL DA APLICAÇÃO
     const { type, data } = event.data
 
@@ -18,7 +17,6 @@ export function listener() {
     }
 
     if (type === Event.CardTypeChanged) {
-      console.log('aqui')
       eventsEmitter.emit('cardTypeChanged', {
         card: data.card,
         parentNode: parentNode,

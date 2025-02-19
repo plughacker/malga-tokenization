@@ -7,8 +7,10 @@ export function submit(configurations: MalgaConfigurations) {
     'iframe[name=card-number]',
   ) as HTMLIFrameElement
 
-  if (!iframeCardNumber) {
-    console.error('iframeCardNumber is null, cannot send postMessage')
+  if (!iframeCardNumber || !iframeCardNumber.contentWindow) {
+    console.error(
+      'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
+    )
     return
   }
 
@@ -16,7 +18,16 @@ export function submit(configurations: MalgaConfigurations) {
     iframeCardNumber.contentWindow!,
     '*',
   )
-
+  console.log('Sending message:', {
+    type: 'submit',
+    data: {
+      authorizationData: {
+        clientId: configurations.clientId,
+        apiKey: configurations.apiKey,
+      },
+      sandbox: configurations.options?.sandbox,
+    },
+  })
   iframePostMessage.send(Event.Submit, {
     authorizationData: {
       clientId: configurations.clientId,
