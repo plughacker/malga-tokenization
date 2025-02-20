@@ -1,29 +1,5 @@
-import type { MalgaConfigurations } from 'src/interfaces'
 import { submit } from './submit'
-
-const configurations: MalgaConfigurations = {
-  clientId: 'test-client-id',
-  apiKey: 'test-api-key',
-  options: {
-    config: {
-      fields: {
-        cardNumber: {
-          container: '#card-number',
-        },
-        cardHolderName: {
-          container: '#card-holder-name',
-        },
-        cardExpirationDate: {
-          container: '#card-expiration-date',
-        },
-        cardCvv: {
-          container: '#card-cvv',
-        },
-      },
-    },
-    sandbox: true,
-  },
-}
+import { configurations } from 'tests/mocks/common-configurations'
 
 describe('submit', () => {
   let iframeCardNumber: HTMLIFrameElement

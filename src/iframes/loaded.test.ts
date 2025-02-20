@@ -1,27 +1,7 @@
 import { URL_HOSTED_FIELD } from 'src/constants'
 import { loaded } from './loaded'
 import { camelToKebabCase } from 'src/utils'
-
-const config = {
-  fields: {
-    cardNumber: {
-      container: '#card-number',
-      type: 'text',
-    },
-    cardHolderName: {
-      container: '#card-holder-name',
-      type: 'text',
-    },
-    cardExpirationDate: {
-      container: '#card-expiration-date',
-      type: 'text',
-    },
-    cardCvv: {
-      container: '#card-cvv',
-      type: 'text',
-    },
-  },
-}
+import { configurations } from '../../tests/mocks/common-configurations'
 
 vi.mock('./create', () => ({
   create: vi.fn((field) => {
@@ -36,7 +16,7 @@ vi.mock('./create', () => ({
 
 describe('loaded', () => {
   test('should be possible to loaded the iframes', () => {
-    loaded(config)
+    loaded(configurations.options?.config)
     const iframes = document.querySelectorAll('iframe')
     expect(iframes).toHaveLength(4)
 

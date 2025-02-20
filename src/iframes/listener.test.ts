@@ -2,6 +2,7 @@ import { validation } from 'src/events'
 import { listener } from './listener'
 import { CSSClasses, Event } from 'src/enums'
 import { eventsEmitter } from 'src/tokenization'
+import { createEventMock } from 'tests/mocks/common-configurations'
 
 vi.mock('src/events', async () => {
   const actual = await vi.importActual('src/events')
@@ -42,7 +43,7 @@ describe('listener', () => {
     parentNode.classList.remove(CSSClasses.Focused)
   })
 
-  it('should add a message event listener to the window', () => {
+  test('should add a message event listener to the window', () => {
     listener()
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'message',
@@ -54,11 +55,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = {
-      origin: 'https://develop.d3krxmg1839vaa.amplifyapp.com',
-      data: { type: 'successOrigin', data: { fieldType: 'card-number' } },
-    }
-
+    const event = createEventMock('successOrigin')
     messageHandler(event)
 
     expect(document.querySelector).toHaveBeenCalledWith(
@@ -71,10 +68,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = {
-      origin: 'https://wrong-origin.com',
-      data: { type: 'test', data: { fieldType: 'card-number' } },
-    }
+    const event = createEventMock('test', 'https://wrong-origin.com')
 
     messageHandler(event)
     expect(document.querySelector).not.toHaveBeenCalled()
@@ -84,10 +78,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = {
-      origin: 'https://develop.d3krxmg1839vaa.amplifyapp.com',
-      data: { type: Event.Validity, data: { fieldType: 'card-number' } },
-    }
+    const event = createEventMock(Event.Validity)
 
     messageHandler(event)
     expect(validation).toHaveBeenCalledWith(
@@ -99,16 +90,20 @@ describe('listener', () => {
   test('should emit CardTypeChanged event for CardTypeChanged event type', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
+    const event = createEventMock(Event.CardTypeChanged)
 
-    const event = {
-      origin: 'https://develop.d3krxmg1839vaa.amplifyapp.com',
+    const updateEvent = {
+      ...event,
       data: {
-        type: Event.CardTypeChanged,
-        data: { fieldType: 'card-number', card: 'visa' },
+        ...event.data,
+        data: {
+          ...event.data.data,
+          card: 'visa',
+        },
       },
     }
 
-    messageHandler(event)
+    messageHandler(updateEvent)
 
     expect(eventsEmitter.emit).toHaveBeenCalledWith('cardTypeChanged', {
       card: 'visa',
@@ -120,10 +115,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = {
-      origin: 'https://develop.d3krxmg1839vaa.amplifyapp.com',
-      data: { type: Event.Focus, data: { fieldType: 'card-number' } },
-    }
+    const event = createEventMock(Event.Focus)
 
     messageHandler(event)
     expect(eventsEmitter.emit).toHaveBeenCalledWith('focus', {
@@ -140,10 +132,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = {
-      origin: 'https://develop.d3krxmg1839vaa.amplifyapp.com',
-      data: { type: Event.Blur, data: { fieldType: 'card-number' } },
-    }
+    const event = createEventMock(Event.Blur)
 
     messageHandler(event)
     expect(eventsEmitter.emit).toHaveBeenCalledWith('blur', {
