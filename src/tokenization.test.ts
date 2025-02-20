@@ -1,208 +1,93 @@
-// import { fireEvent, waitFor } from '@testing-library/dom'
-// import {
-//   configureFormSubmissionMock,
-//   formElementsMock,
-//   formValuesMock,
-//   handleFormMock,
-//   malgaConfigurations,
-// } from '../tests/mocks/common-configurations'
-// import { MalgaTokenization } from './tokenization'
-// import { generateForm, generateFormEmptyValues } from 'tests/mocks/form-dom'
+import { MalgaTokenization, eventsEmitter } from './tokenization' // Adjust path as needed
+import { Tokenize } from './tokenize'
+import { loaded, listener } from './iframes'
+import { configurationsSDK } from 'tests/mocks'
 
-// vi.mock('./common/malga', async (importOriginal) => {
-//   const Malga = await importOriginal<typeof import('./common/malga')>()
-//   return {
-//     ...Malga,
-//     tokenization: vi.fn(),
-//   }
-// })
-// const onSubmit = vi.fn()
+vi.mock('./tokenize')
+vi.mock('./iframes')
+vi.mock('./events', () => {
+  const MockEvents = vi.fn(() => ({
+    on: vi.fn(),
+    emit: vi.fn(),
+  }))
+  return { Events: MockEvents }
+})
 
-// function FormForInit(onSubmit: any) {
-//   const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
-//     handleFormMock()
+describe('MalgaTokenization', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
 
-//   form.setAttribute(formElementsMock.form, '')
-//   form.onsubmit = onSubmit
-//   form.id = 'form'
-//   form.method = 'POST'
-//   form.action = '/test'
+  test('should initialize with valid configurations', () => {
+    const malgaTokenization = new MalgaTokenization(configurationsSDK)
 
-//   holderNameInput.setAttribute(formElementsMock.holderName, '')
-//   numberInput.setAttribute(formElementsMock.number, '')
-//   cvvInput.setAttribute(formElementsMock.cvv, '')
-//   expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
+    expect(malgaTokenization).toBeDefined()
+    expect(loaded).toHaveBeenCalled()
+    expect(listener).toHaveBeenCalled()
+  })
 
-//   document.body.appendChild(form)
-//   form.appendChild(holderNameInput)
-//   form.appendChild(numberInput)
-//   form.appendChild(expirationDateInput)
-//   form.appendChild(cvvInput)
+  test('should log an error if API key is missing', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error')
+    new MalgaTokenization({ ...configurationsSDK, apiKey: '' })
 
-//   const inputs = document.querySelectorAll('input')
-//   inputs[0].value = formValuesMock.holderName
-//   inputs[1].value = formValuesMock.number
-//   inputs[2].value = formValuesMock.expirationDate
-//   inputs[3].value = formValuesMock.cvv
-// }
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Missing API key. Pass it to the constructor `new MalgaTokenization({ apiKey: "YOUR_API_KEY", clientId: "YOUR_CLIENT_ID" })`',
+    )
+  })
 
-// function FormForTokenize() {
-//   const { form, holderNameInput, cvvInput, expirationDateInput, numberInput } =
-//     handleFormMock()
+  test('should log an error if client ID is missing', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error')
+    new MalgaTokenization({ ...configurationsSDK, clientId: '' })
 
-//   form.setAttribute(formElementsMock.form, '')
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'Missing API key. Pass it to the constructor `new MalgaTokenization({ apiKey: "YOUR_API_KEY", clientId: "YOUR_CLIENT_ID" })`',
+    )
+  })
 
-//   form.id = 'form'
-//   form.method = 'POST'
-//   form.action = '/test'
+  test('should call tokenize.handle() when tokenize() is called', async () => {
+    const mockTokenizeHandle = vi
+      .fn()
+      .mockResolvedValue('623e25e1-9c40-442e-beaa-a9d7b735bdc1')
 
-//   holderNameInput.setAttribute(formElementsMock.holderName, '')
-//   numberInput.setAttribute(formElementsMock.number, '')
-//   cvvInput.setAttribute(formElementsMock.cvv, '')
-//   expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
+    vi.spyOn(Tokenize.prototype, 'handle').mockImplementation(
+      mockTokenizeHandle,
+    )
 
-//   document.body.appendChild(form)
-//   form.appendChild(holderNameInput)
-//   form.appendChild(numberInput)
-//   form.appendChild(expirationDateInput)
-//   form.appendChild(cvvInput)
+    const malgaTokenization = new MalgaTokenization(configurationsSDK)
+    const token = await malgaTokenization.tokenize()
 
-//   const inputs = document.querySelectorAll('input')
-//   inputs[0].value = formValuesMock.holderName
-//   inputs[1].value = formValuesMock.number
-//   inputs[2].value = formValuesMock.expirationDate
-//   inputs[3].value = formValuesMock.cvv
-// }
-// describe('MalgaTokenization', () => {
-//   describe('init', () => {
-//     beforeEach(() => {
-//       document.body.innerHTML = ''
-//     })
-//     test('should be possible to return the tokenId element', async () => {
-//       configureFormSubmissionMock()
+    expect(Tokenize).toHaveBeenCalledWith(configurationsSDK)
+    expect(mockTokenizeHandle).toHaveBeenCalled()
+    expect(token).toBe('623e25e1-9c40-442e-beaa-a9d7b735bdc1')
+  })
 
-//       generateForm(onSubmit)
+  test('should call eventsEmitter.on when type cardTypeChanged is called', () => {
+    const malgaTokenization = new MalgaTokenization(configurationsSDK)
+    const mockEventHandler = vi.fn()
 
-//       const malgaTokenizationObject = new MalgaTokenization(
-//         malgaConfigurations(false),
-//       )
+    malgaTokenization.on('cardTypeChanged', mockEventHandler)
 
-//       malgaTokenizationObject.init()
+    expect(eventsEmitter.on).toHaveBeenCalledWith(
+      'cardTypeChanged',
+      mockEventHandler,
+    )
+  })
 
-//       const form = document.querySelector('form')
-//       fireEvent.submit(form!)
+  test('should call eventsEmitter.on when type focus is called', () => {
+    const malgaTokenization = new MalgaTokenization(configurationsSDK)
+    const mockEventHandler = vi.fn()
 
-//       await waitFor(() => {
-//         const tokenIdInput = document.querySelector<HTMLInputElement>(
-//           'input[name="tokenId"]',
-//         )
-//         expect(tokenIdInput).toBeInTheDocument()
-//         expect(form).toContain(tokenIdInput)
-//         expect(tokenIdInput).toBeTruthy()
-//       })
-//     })
-//     test('should be possible to return an error if form elements do not have values assigned', async () => {
-//       configureFormSubmissionMock()
+    malgaTokenization.on('focus', mockEventHandler)
 
-//       generateFormEmptyValues(onSubmit)
+    expect(eventsEmitter.on).toHaveBeenCalledWith('focus', mockEventHandler)
+  })
 
-//       const malgaTokenizationObject = new MalgaTokenization(
-//         malgaConfigurations(false),
-//       )
+  test('should call eventsEmitter.on when type validity is called', () => {
+    const malgaTokenization = new MalgaTokenization(configurationsSDK)
+    const mockEventHandler = vi.fn()
 
-//       await waitFor(() => {
-//         expect(malgaTokenizationObject.init).rejects.toThrowError()
-//       })
-//     })
-//     test('should be possible to return an error if apiKey and clientId are passed empty', async () => {
-//       configureFormSubmissionMock()
+    malgaTokenization.on('validity', mockEventHandler)
 
-//       FormForInit(onSubmit)
-
-//       const malgaConfigurationsEmpty = {
-//         apiKey: '',
-//         clientId: '',
-//       }
-
-//       const malgaTokenizationObject = new MalgaTokenization(
-//         malgaConfigurationsEmpty,
-//       )
-
-//       await waitFor(() => {
-//         expect(malgaTokenizationObject.init).rejects.toThrowError()
-//       })
-//     })
-//   })
-//   describe('tokenize', () => {
-//     beforeEach(() => {
-//       document.body.innerHTML = ''
-//     })
-//     test('should be possible to return a not falsy value equal to production-token-id', async () => {
-//       configureFormSubmissionMock()
-//       const malgaTokenizationObject = new MalgaTokenization(
-//         malgaConfigurations(false),
-//       )
-//       FormForTokenize()
-//       const form = document.querySelector('form')
-//       fireEvent.submit(form!)
-//       const { tokenId } = await malgaTokenizationObject.tokenize()
-//       await waitFor(() => {
-//         expect(tokenId).toBe('production-token-id')
-//       })
-//     })
-//     test('should be possible to return an error if form elements do not have values assigned', async () => {
-//       configureFormSubmissionMock()
-//       const malgaTokenizationObject = new MalgaTokenization(
-//         malgaConfigurations(false),
-//       )
-
-//       const {
-//         form,
-//         holderNameInput,
-//         cvvInput,
-//         expirationDateInput,
-//         numberInput,
-//       } = handleFormMock()
-
-//       form.setAttribute(formElementsMock.form, '')
-//       form.id = 'form'
-//       form.method = 'POST'
-//       form.action = '/test'
-
-//       holderNameInput.setAttribute(formElementsMock.holderName, '')
-//       numberInput.setAttribute(formElementsMock.number, '')
-//       cvvInput.setAttribute(formElementsMock.cvv, '')
-//       expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-//       document.body.appendChild(form)
-//       form.appendChild(holderNameInput)
-//       form.appendChild(numberInput)
-//       form.appendChild(expirationDateInput)
-//       form.appendChild(cvvInput)
-
-//       const form2 = document.querySelector('form')
-//       fireEvent.submit(form2!)
-
-//       await expect(malgaTokenizationObject.tokenize()).rejects.toThrowError()
-//     })
-//     test('should be possible to return an error if apiKey and clientId are passed empty', async () => {
-//       configureFormSubmissionMock()
-
-//       const malgaConfigurationsEmpty = {
-//         apiKey: '',
-//         clientId: '',
-//       }
-
-//       const malgaTokenizationObject = new MalgaTokenization(
-//         malgaConfigurationsEmpty,
-//       )
-
-//       FormForTokenize()
-
-//       const form = document.querySelector('form')
-//       fireEvent.submit(form!)
-
-//       await expect(malgaTokenizationObject.tokenize()).rejects.toThrowError()
-//     })
-//   })
-// })
+    expect(eventsEmitter.on).toHaveBeenCalledWith('validity', mockEventHandler)
+  })
+})
