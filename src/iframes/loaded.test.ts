@@ -1,7 +1,7 @@
 import { URL_HOSTED_FIELD } from 'src/constants'
 import { loaded } from './loaded'
 import { camelToKebabCase } from 'src/utils'
-import { configurations } from '../../tests/mocks/common-configurations'
+import { configurationsSDK } from 'tests/mocks'
 
 vi.mock('./create', () => ({
   create: vi.fn((field) => {
@@ -16,8 +16,10 @@ vi.mock('./create', () => ({
 
 describe('loaded', () => {
   test('should be possible to loaded the iframes', () => {
-    loaded(configurations.options?.config)
+    loaded(configurationsSDK.options?.config)
+
     const iframes = document.querySelectorAll('iframe')
+
     expect(iframes).toHaveLength(4)
 
     iframes.forEach((iframe) => {

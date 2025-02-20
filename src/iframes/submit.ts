@@ -18,16 +18,7 @@ export function submit(configurations: MalgaConfigurations) {
     iframeCardNumber.contentWindow!,
     '*',
   )
-  console.log('Sending message:', {
-    type: 'submit',
-    data: {
-      authorizationData: {
-        clientId: configurations.clientId,
-        apiKey: configurations.apiKey,
-      },
-      sandbox: configurations.options?.sandbox,
-    },
-  })
+
   iframePostMessage.send(Event.Submit, {
     authorizationData: {
       clientId: configurations.clientId,

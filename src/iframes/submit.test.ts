@@ -1,53 +1,40 @@
 import { submit } from './submit'
-import { configurations } from 'tests/mocks/common-configurations'
+import {
+  configurationsSDK,
+  configurationWithSubmitData,
+  handleRemoveIframe,
+  handleSetupIframeInDOM,
+} from 'tests/mocks'
 
 describe('submit', () => {
   let iframeCardNumber: HTMLIFrameElement
 
   beforeAll(() => {
-    iframeCardNumber = document.createElement('iframe')
-    iframeCardNumber.name = 'card-number'
-    document.body.appendChild(iframeCardNumber)
-
-    Object.defineProperty(iframeCardNumber, 'contentWindow', {
-      value: {
-        postMessage: vi.fn(),
-      },
-      writable: true,
+    iframeCardNumber = handleSetupIframeInDOM('card-number', {
+      postMessage: vi.fn(),
     })
   })
 
   afterEach(() => {
     vi.clearAllMocks()
-
-    if (document.body.contains(iframeCardNumber)) {
-      document.body.removeChild(iframeCardNumber)
-    }
+    handleRemoveIframe(iframeCardNumber)
   })
 
   test('should send a post message with authorization data', () => {
-    submit(configurations)
+    submit(configurationsSDK)
 
     expect(iframeCardNumber).toBeInTheDocument()
     expect(iframeCardNumber.contentWindow?.postMessage).toHaveBeenCalledTimes(1)
     expect(iframeCardNumber.contentWindow?.postMessage).toHaveBeenCalledWith(
-      {
-        type: 'submit',
-        data: {
-          authorizationData: {
-            clientId: 'test-client-id',
-            apiKey: 'test-api-key',
-          },
-          sandbox: true,
-        },
-      },
+      configurationWithSubmitData,
       '*',
     )
   })
-  test('should not send a post message if iframe does not exist', () => {
-    iframeCardNumber.remove()
 
-    submit(configurations)
+  test('should not send a post message if iframe does not exist', () => {
+    handleRemoveIframe(iframeCardNumber)
+
+    submit(configurationsSDK)
     expect(iframeCardNumber.contentWindow?.postMessage).not.toHaveBeenCalled()
   })
 })

@@ -2,7 +2,7 @@ import { validation } from 'src/events'
 import { listener } from './listener'
 import { CSSClasses, Event } from 'src/enums'
 import { eventsEmitter } from 'src/tokenization'
-import { createEventMock } from 'tests/mocks/common-configurations'
+import { handleCreateMockEvent } from 'tests/mocks'
 
 vi.mock('src/events', async () => {
   const actual = await vi.importActual('src/events')
@@ -55,7 +55,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = createEventMock('successOrigin')
+    const event = handleCreateMockEvent('successOrigin')
     messageHandler(event)
 
     expect(document.querySelector).toHaveBeenCalledWith(
@@ -68,7 +68,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = createEventMock('test', 'https://wrong-origin.com')
+    const event = handleCreateMockEvent('test', 'https://wrong-origin.com')
 
     messageHandler(event)
     expect(document.querySelector).not.toHaveBeenCalled()
@@ -78,7 +78,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = createEventMock(Event.Validity)
+    const event = handleCreateMockEvent(Event.Validity)
 
     messageHandler(event)
     expect(validation).toHaveBeenCalledWith(
@@ -90,7 +90,7 @@ describe('listener', () => {
   test('should emit CardTypeChanged event for CardTypeChanged event type', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
-    const event = createEventMock(Event.CardTypeChanged)
+    const event = handleCreateMockEvent(Event.CardTypeChanged)
 
     const updateEvent = {
       ...event,
@@ -115,7 +115,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = createEventMock(Event.Focus)
+    const event = handleCreateMockEvent(Event.Focus)
 
     messageHandler(event)
     expect(eventsEmitter.emit).toHaveBeenCalledWith('focus', {
@@ -132,7 +132,7 @@ describe('listener', () => {
     listener()
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = createEventMock(Event.Blur)
+    const event = handleCreateMockEvent(Event.Blur)
 
     messageHandler(event)
     expect(eventsEmitter.emit).toHaveBeenCalledWith('blur', {

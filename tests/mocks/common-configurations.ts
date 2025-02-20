@@ -1,4 +1,6 @@
-export const configurations = {
+import type { MalgaConfigurations } from 'src/interfaces'
+
+export const configurationsSDK: MalgaConfigurations = {
   clientId: 'test-client-id',
   apiKey: 'test-api-key',
   options: {
@@ -6,15 +8,23 @@ export const configurations = {
       fields: {
         cardNumber: {
           container: '#card-number',
+          placeholder: '9999 9999 9999 9999',
+          type: 'text',
         },
         cardHolderName: {
           container: '#card-holder-name',
+          placeholder: 'Its a test',
+          type: 'text',
         },
         cardExpirationDate: {
           container: '#card-expiration-date',
+          placeholder: 'MM/YY',
+          type: 'text',
         },
         cardCvv: {
           container: '#card-cvv',
+          placeholder: '999',
+          type: 'text',
         },
       },
     },
@@ -22,16 +32,13 @@ export const configurations = {
   },
 }
 
-export function createEventMock(type: string, origin?: string) {
-  const event = {
-    origin: origin ?? 'https://develop.d3krxmg1839vaa.amplifyapp.com',
-    data: {
-      type: type,
-      data: {
-        fieldType: 'card-number',
-      },
+export const configurationWithSubmitData = {
+  type: 'submit',
+  data: {
+    authorizationData: {
+      clientId: 'test-client-id',
+      apiKey: 'test-api-key',
     },
-  }
-
-  return event
+    sandbox: true,
+  },
 }
