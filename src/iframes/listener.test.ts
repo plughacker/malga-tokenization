@@ -45,6 +45,7 @@ describe('listener', () => {
 
   test('should add a message event listener to the window', () => {
     listener()
+
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'message',
       expect.any(Function),

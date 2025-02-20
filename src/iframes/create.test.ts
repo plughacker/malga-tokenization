@@ -25,11 +25,13 @@ describe('create', () => {
       expect(parentNode.getAttribute('id')).toBe(type)
     })
   }
+
   const fields = [
     'cardNumber',
     'cardHolderName',
     'cardExpirationDate',
     'cardCvv',
   ]
+
   fields.forEach(testCreatingIframe)
 })

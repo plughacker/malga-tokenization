@@ -13,12 +13,12 @@ vi.mock('./events', () => {
   return { Events: MockEvents }
 })
 
-describe('MalgaTokenization', () => {
+describe('tokenization', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  test('should initialize with valid configurations', () => {
+  test('should create a new MalgaTokenization with configurations', () => {
     const malgaTokenization = new MalgaTokenization(configurationsSDK)
 
     expect(malgaTokenization).toBeDefined()
@@ -26,7 +26,7 @@ describe('MalgaTokenization', () => {
     expect(listener).toHaveBeenCalled()
   })
 
-  test('should log an error if API key is missing', () => {
+  test('should show an error if API key is missing', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error')
     new MalgaTokenization({ ...configurationsSDK, apiKey: '' })
 
@@ -35,7 +35,7 @@ describe('MalgaTokenization', () => {
     )
   })
 
-  test('should log an error if client ID is missing', () => {
+  test('should show an error if client ID is missing', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error')
     new MalgaTokenization({ ...configurationsSDK, clientId: '' })
 
@@ -44,7 +44,7 @@ describe('MalgaTokenization', () => {
     )
   })
 
-  test('should call tokenize.handle() when tokenize() is called', async () => {
+  test('should call handle function in tokenization class', async () => {
     const mockTokenizeHandle = vi
       .fn()
       .mockResolvedValue('623e25e1-9c40-442e-beaa-a9d7b735bdc1')

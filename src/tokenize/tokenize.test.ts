@@ -41,7 +41,7 @@ describe('tokenize', () => {
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
   })
 
-  test('should handle errors during message processing', async () => {
+  test('should handle error for undefined data', async () => {
     const tokenize = new Tokenize(configurationsSDK)
 
     const promise = tokenize.handle()
@@ -58,7 +58,7 @@ describe('tokenize', () => {
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
   })
 
-  test('should ignore messages from unauthorized origins', async () => {
+  test('should ignore messages from different origins', async () => {
     const tokenize = new Tokenize(configurationsSDK)
     const consoleErrorSpy = vi
       .spyOn(console, 'error')
@@ -68,7 +68,7 @@ describe('tokenize', () => {
     const messageEvent = handleCreateMessageEventMock(
       Event.Tokenize,
       '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
-      'https://unauthorized.com',
+      'https://wrong-origin.com',
     )
     global.dispatchEvent(messageEvent)
 
@@ -83,11 +83,12 @@ describe('tokenize', () => {
   test('should call submit with correct configurations', () => {
     const submitSpy = vi.spyOn(iframesModule, 'submit')
     new Tokenize(configurationsSDK).handle()
+
     expect(submitSpy).toHaveBeenCalledWith(configurationsSDK)
     submitSpy.mockRestore()
   })
 
-  test('should handle iframe not found', () => {
+  test('should show error when iframeCardNumber is not found', () => {
     const querySelectorSpy = vi.spyOn(document, 'querySelector')
     querySelectorSpy.mockReturnValue(null)
 
