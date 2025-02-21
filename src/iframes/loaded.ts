@@ -1,14 +1,14 @@
-import type { MalgaInputFieldConfigurations } from 'src/common/interfaces'
+import type { MalgaInputFieldConfigurations } from 'src/interfaces'
 import { create } from './create'
-import { Event } from 'src/common/enums'
-import { camelToKebabCase } from './parsedString'
+import { Event } from 'src/enums'
+import { camelToKebabCase } from 'src/utils'
+import { URL_HOSTED_FIELD } from '../constants'
 
 export function loaded(config: MalgaInputFieldConfigurations) {
   const fields = Object.keys(config.fields)
 
   for (const field of fields) {
     const fieldConfig = config.fields[field as keyof typeof config.fields]
-
     const iframe = create(field, fieldConfig)
     const iframeName = camelToKebabCase(field)
 
@@ -31,7 +31,7 @@ export function loaded(config: MalgaInputFieldConfigurations) {
           styles: config.styles,
           preventAutofill: config.preventAutofill ?? true,
         },
-        'https://develop.d3krxmg1839vaa.amplifyapp.com/', //URL DA APLICAÇÃO
+        URL_HOSTED_FIELD,
       )
     }
   }

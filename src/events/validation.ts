@@ -1,3 +1,4 @@
+import { CSSClasses } from 'src/enums'
 import { eventsEmitter } from 'src/tokenization'
 
 export function validation(data: any, parentNode: Element | null) {
@@ -6,13 +7,13 @@ export function validation(data: any, parentNode: Element | null) {
   const isPotentiallyValid = data.potentialValid
 
   if (isEmpty || isPotentiallyValid) {
-    parentNode?.classList.remove('malga-hosted-field-valid')
-    parentNode?.classList.remove('malga-hosted-field-invalid')
+    parentNode?.classList.remove(CSSClasses.Valid)
+    parentNode?.classList.remove(CSSClasses.Invalid)
     return
   }
 
-  parentNode?.classList.toggle('malga-hosted-field-valid', isValid)
-  parentNode?.classList.toggle('malga-hosted-field-invalid', !isValid)
+  parentNode?.classList.toggle(CSSClasses.Valid, isValid)
+  parentNode?.classList.toggle(CSSClasses.Invalid, !isValid)
 
   eventsEmitter.emit('validity', {
     field: data.fieldType,

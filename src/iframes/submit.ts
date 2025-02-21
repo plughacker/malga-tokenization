@@ -1,14 +1,16 @@
-import type { MalgaConfigurations } from 'src/common/interfaces'
-import { EventPostMessage } from '../form-events'
-import { Event } from 'src/common/enums'
+import type { MalgaConfigurations } from 'src/interfaces'
+import { Event } from 'src/enums'
+import { EventPostMessage } from 'src/events'
 
 export function submit(configurations: MalgaConfigurations) {
   const iframeCardNumber = document.querySelector(
     'iframe[name=card-number]',
   ) as HTMLIFrameElement
 
-  if (!iframeCardNumber) {
-    console.error('iframeCardNumber is null, cannot send postMessage')
+  if (!iframeCardNumber || !iframeCardNumber.contentWindow) {
+    console.error(
+      'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
+    )
     return
   }
 

@@ -1,116 +1,105 @@
+import { Event } from 'src/enums'
+import { submit } from 'src/iframes'
+import { Tokenize } from './../tokenize/tokenize'
+import * as iframesModule from 'src/iframes'
 import {
-  formElementsMock,
-  handleFormMock,
-  malgaConfigurations,
-} from 'tests/mocks/common-configurations'
-import { generateForm } from 'tests/mocks/form-dom'
-import { Malga } from 'src/common/malga'
-import { Tokenize } from './tokenize'
+  handleSetupIframeInDOM,
+  handleRemoveIframe,
+  handleCreateMessageEventMock,
+  configurationsSDK,
+} from 'tests/mocks'
 
-vi.mock('src/common/malga', async (importOriginal) => {
-  const Malga = await importOriginal<typeof import('src/common/malga')>()
-  return {
-    ...Malga,
-    tokenization: vi.fn(),
-  }
-})
+describe('tokenize', () => {
+  let iframe: HTMLIFrameElement
+  let contentWindowMock: Window
 
-describe('Tokenize', () => {
-  describe('handle', () => {
-    beforeEach(() => {
-      document.body.innerHTML = ''
-    })
+  beforeEach(() => {
+    contentWindowMock = {
+      postMessage: vi.fn(),
+      addEventListener: vi.fn(),
+    } as unknown as Window
 
-    test('should be possible for a tokenId to exist when elements are passed correctly', async () => {
-      generateForm()
+    iframe = handleSetupIframeInDOM('card-number', contentWindowMock)
+  })
 
-      const malga = new Malga(malgaConfigurations(false))
+  afterEach(() => {
+    vi.clearAllMocks()
+    handleRemoveIframe(iframe)
+  })
 
-      const tokenizeObject = new Tokenize(malga, formElementsMock)
-      const tokenId = await tokenizeObject.handle()
+  test('should resolve with token data on successful message', async () => {
+    const tokenize = new Tokenize(configurationsSDK)
+    const promise = tokenize.handle()
+    const messageEvent = handleCreateMessageEventMock(
+      Event.Tokenize,
+      '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+    )
+    global.dispatchEvent(messageEvent)
 
-      expect(tokenId).toBeTruthy()
-    })
-    test('should be possible to return a tokenId equal to sandbox-token-id when configurations include sandbox equal to true', async () => {
-      generateForm()
+    const response = await promise
+    expect(response).toEqual('623e25e1-9c40-442e-beaa-a9d7b735bdc1')
+    expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
+  })
 
-      const malga = new Malga(malgaConfigurations(true))
+  test('should handle error for undefined data', async () => {
+    const tokenize = new Tokenize(configurationsSDK)
 
-      const tokenizeObject = new Tokenize(malga, formElementsMock)
+    const promise = tokenize.handle()
 
-      const tokenId = await tokenizeObject.handle()
-      expect(tokenId).toMatchObject({ tokenId: 'sandbox-token-id' })
-    })
-    test('should be possible to return a tokenId equal to sandbox-token-id when configurations include production equal to true', async () => {
-      generateForm()
+    const messageEvent = handleCreateMessageEventMock(
+      Event.Tokenize,
+      undefined,
+      'https://develop.d3krxmg1839vaa.amplifyapp.com',
+    )
+    global.dispatchEvent(messageEvent)
 
-      const malga = new Malga(malgaConfigurations(false))
+    const response = await promise
+    expect(response).toEqual(undefined)
+    expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
+  })
 
-      const tokenizeObject = new Tokenize(malga, formElementsMock)
+  test('should ignore messages from different origins', async () => {
+    const tokenize = new Tokenize(configurationsSDK)
+    const consoleErrorSpy = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => {})
+    const promise = tokenize.handle()
 
-      const tokenId = await tokenizeObject.handle()
-      expect(tokenId).toMatchObject({ tokenId: 'production-token-id' })
-    })
-    test('should be possible to return error when elements are not passed correctly', async () => {
-      generateForm()
+    const messageEvent = handleCreateMessageEventMock(
+      Event.Tokenize,
+      '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+      'https://wrong-origin.com',
+    )
+    global.dispatchEvent(messageEvent)
 
-      const malga = new Malga(malgaConfigurations(false))
+    await new Promise((resolve) => setTimeout(resolve, 10))
 
-      const elementsMock = {
-        form: 'jenjen',
-        holderName: 'le',
-        number: 'li',
-        expirationDate: 'lo',
-        cvv: 'lu',
-      }
-      const tokenizeObject = new Tokenize(malga, elementsMock)
+    expect(consoleErrorSpy).toHaveBeenCalledWith('Unauthorized')
+    expect(promise).not.resolves
+    expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
+    consoleErrorSpy.mockRestore()
+  })
 
-      await expect(tokenizeObject.handle()).rejects.toThrowError(
-        "Cannot read properties of null (reading 'value')",
-      )
-    })
-    test('should be possible to return an error if the apiKey and clientId settings are empty', async () => {
-      generateForm()
+  test('should call submit with correct configurations', () => {
+    const submitSpy = vi.spyOn(iframesModule, 'submit')
+    new Tokenize(configurationsSDK).handle()
 
-      const malgaConfigurationsEmpty = {
-        apiKey: '',
-        clientId: '',
-      }
+    expect(submitSpy).toHaveBeenCalledWith(configurationsSDK)
+    submitSpy.mockRestore()
+  })
 
-      const malga = new Malga(malgaConfigurationsEmpty)
+  test('should show error when iframeCardNumber is not found', () => {
+    const querySelectorSpy = vi.spyOn(document, 'querySelector')
+    querySelectorSpy.mockReturnValue(null)
 
-      const tokenizeObject = new Tokenize(malga, formElementsMock)
+    const consoleErrorSpy = vi.spyOn(console, 'error')
+    submit(configurationsSDK)
 
-      await expect(tokenizeObject.handle).rejects.toThrowError(
-        "Cannot read properties of undefined (reading 'elements')",
-      )
-    })
-    test('should be possible to return an error if the form inputs do not have values assigned', async () => {
-      const {
-        form,
-        holderNameInput,
-        cvvInput,
-        expirationDateInput,
-        numberInput,
-      } = handleFormMock()
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
+    )
 
-      form.setAttribute(formElementsMock.form, '')
-      holderNameInput.setAttribute(formElementsMock.holderName, '')
-      numberInput.setAttribute(formElementsMock.number, '')
-      cvvInput.setAttribute(formElementsMock.cvv, '')
-      expirationDateInput.setAttribute(formElementsMock.expirationDate, '')
-
-      document.body.appendChild(form)
-      form.appendChild(holderNameInput)
-      form.appendChild(numberInput)
-      form.appendChild(expirationDateInput)
-      form.appendChild(cvvInput)
-
-      const malga = new Malga(malgaConfigurations(false))
-
-      const tokenizeObject = new Tokenize(malga, formElementsMock)
-
-      await expect(tokenizeObject.handle()).rejects.toThrowError()
-    })
+    querySelectorSpy.mockRestore()
+    consoleErrorSpy.mockRestore()
   })
 })

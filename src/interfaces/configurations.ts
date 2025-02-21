@@ -1,6 +1,5 @@
 export interface MalgaInputFieldConfiguration {
   container: string
-  // selector: string
   placeholder?: string
   type?: string
   needMask?: boolean

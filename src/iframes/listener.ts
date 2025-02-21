@@ -1,5 +1,6 @@
+import { CSSClasses, EventEmits, Event } from 'src/enums'
+import { EventListener, validation } from 'src/events'
 import { eventsEmitter } from 'src/tokenization'
-import { EventListener, validation } from '../form-events'
 
 export function listener() {
   const windowMessage = new EventListener(window.parent)
@@ -11,24 +12,27 @@ export function listener() {
     const parentNode = document.querySelector(`#${data?.fieldType}`)
     if (!parentNode) return
 
-    if (type === 'validation') {
+    if (type === Event.Validity) {
       validation(data, parentNode)
     }
 
-    if (type === 'cardTypeChanged') {
+    if (type === Event.CardTypeChanged) {
       eventsEmitter.emit('cardTypeChanged', {
         card: data.card,
         parentNode: parentNode,
       })
     }
 
-    if (type === 'focus' || type === 'blur') {
-      parentNode?.classList.toggle('malga-hosted-field-focused')
+    if (type === Event.Focus || type === Event.Blur) {
+      parentNode?.classList.toggle(CSSClasses.Focused)
 
-      eventsEmitter.emit(type === 'focus' ? 'focus' : 'blur', {
-        field: data.fieldType,
-        parentNode: parentNode,
-      })
+      eventsEmitter.emit(
+        type === EventEmits.Focus ? EventEmits.Focus : EventEmits.Blur,
+        {
+          field: data.fieldType,
+          parentNode: parentNode,
+        },
+      )
     }
   })
 }
