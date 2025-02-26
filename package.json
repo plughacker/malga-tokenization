@@ -44,9 +44,6 @@
     "test": "vitest",
     "test:ci": "vitest --run"
   },
-  "dependencies": {
-    "axios": "^1.6.2"
-  },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",

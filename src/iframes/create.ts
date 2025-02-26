@@ -1,16 +1,12 @@
 import { CSSClasses } from 'src/enums'
 import type { MalgaInputFieldConfiguration } from 'src/interfaces'
-import { camelToKebabCase, waitingForElement } from 'src/utils'
+import { waitingForElement } from 'src/utils'
 import { URL_HOSTED_FIELD } from '../constants'
 
-export function create(
-  type: string,
-  fieldConfig: MalgaInputFieldConfiguration,
-) {
+export function create(fieldConfig: MalgaInputFieldConfiguration) {
   const iframe = document.createElement('iframe')
-  const iframeName = camelToKebabCase(type)
 
-  iframe.setAttribute('name', iframeName)
+  iframe.setAttribute('name', fieldConfig.container)
   iframe.setAttribute('src', URL_HOSTED_FIELD)
   iframe.setAttribute('width', '100%')
   iframe.setAttribute('height', '100%')

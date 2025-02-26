@@ -7,22 +7,22 @@ export const configurationsSDK: MalgaConfigurations = {
     config: {
       fields: {
         cardNumber: {
-          container: '#card-number',
+          container: 'card-number',
           placeholder: '9999 9999 9999 9999',
           type: 'text',
         },
         cardHolderName: {
-          container: '#card-holder-name',
+          container: 'card-holder-name',
           placeholder: 'Its a test',
           type: 'text',
         },
         cardExpirationDate: {
-          container: '#card-expiration-date',
+          container: 'card-expiration-date',
           placeholder: 'MM/YY',
           type: 'text',
         },
         cardCvv: {
-          container: '#card-cvv',
+          container: 'card-cvv',
           placeholder: '999',
           type: 'text',
         },

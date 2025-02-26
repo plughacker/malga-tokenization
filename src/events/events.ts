@@ -5,6 +5,7 @@ export class EventPostMessage {
   ) {}
 
   send(type?: string, data?: any, origin?: string) {
+    console.log('aqui', type, data, origin)
     this.action.postMessage({ type, data }, origin ?? this.origin)
   }
 }

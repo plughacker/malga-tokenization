@@ -1,11 +1,11 @@
 import { Event } from 'src/enums'
 import { EventListener } from 'src/events'
 import { submit } from 'src/iframes'
-import type { MalgaConfigurations, MalgaPayloadResponse } from 'src/interfaces'
+import { MalgaConfigurations, MalgaPayloadResponse } from 'src/interfaces'
+import { URL_HOSTED_FIELD } from '../constants'
 
 export class Tokenize {
-  private readonly allowedOrigins =
-    'https://develop.d3krxmg1839vaa.amplifyapp.com'
+  private readonly allowedOrigins = URL_HOSTED_FIELD
 
   constructor(private readonly configurations: MalgaConfigurations) {}
 
