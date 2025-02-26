@@ -27,7 +27,10 @@ export class MalgaTokenization {
     return tokenize.handle()
   }
 
-  public on(type: string, eventHandler: (event: any) => void) {
+  public on(
+    type: 'validity' | 'cardTypeChanged' | 'focus' | 'blur',
+    eventHandler: (event: any) => void,
+  ) {
     return eventsEmitter.on(type, eventHandler)
   }
 }

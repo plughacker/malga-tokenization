@@ -1,2 +1,2 @@
 export * from './configurations'
-export * from './form'
+export * from './tokenize'
