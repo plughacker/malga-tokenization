@@ -4,7 +4,7 @@ export function handleCreateMockEvent(type: string, origin?: string) {
     data: {
       type: type,
       data: {
-        fieldType: 'card-number',
+        field: 'card-number',
       },
     },
   }

@@ -1,4 +1,4 @@
-import type { MalgaConfigurations } from 'src/interfaces'
+import type { EventTypeReturn, MalgaConfigurations } from 'src/interfaces'
 
 import { Tokenize } from './tokenize'
 import { Events } from './events'
@@ -27,10 +27,7 @@ export class MalgaTokenization {
     return tokenize.handle()
   }
 
-  public on(
-    type: 'validity' | 'cardTypeChanged' | 'focus' | 'blur',
-    eventHandler: (event: any) => void,
-  ) {
-    return eventsEmitter.on(type, eventHandler)
+  public on(eventType: EventTypeReturn, eventHandler: (event: any) => void) {
+    return eventsEmitter.on(eventType, eventHandler)
   }
 }

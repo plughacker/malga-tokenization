@@ -1,38 +1,81 @@
 import { CSSClasses, EventEmits, Event } from 'src/enums'
-import { EventListener, validation } from 'src/events'
+import { EventListener, handGetValidationEventData } from 'src/events'
+import type {
+  MalgaEventDataValidityReturn,
+  MalgaContainer,
+  EventHandler,
+  MalgaEventDataCardTypeChangePayloadReturn,
+} from 'src/interfaces'
 import { eventsEmitter } from 'src/tokenization'
+
+function handleEventValidity(
+  data: MalgaEventDataValidityReturn,
+  parentNode: Element,
+) {
+  handGetValidationEventData(data, parentNode)
+}
+
+function handleEventCardTypeChanged(
+  data: MalgaEventDataCardTypeChangePayloadReturn,
+  parentNode: Element,
+) {
+  eventsEmitter.emit(Event.CardTypeChanged, {
+    field: data.field,
+    parentNode: parentNode,
+    card: data.card,
+  })
+}
+
+function handleEventFocus(
+  data: { field: MalgaContainer },
+  parentNode: Element,
+) {
+  parentNode.classList.add(CSSClasses.Focused)
+  eventsEmitter.emit(EventEmits.Focus, {
+    field: data.field,
+    parentNode: parentNode,
+  })
+}
+
+function handleEventBlur(data: { field: MalgaContainer }, parentNode: Element) {
+  parentNode.classList.remove(CSSClasses.Focused)
+  eventsEmitter.emit(EventEmits.Blur, {
+    field: data.field,
+    parentNode: parentNode,
+  })
+}
+
+const eventHandlers: { [key: string]: EventHandler<any> } = {
+  [Event.Validity]: handleEventValidity,
+  [Event.CardTypeChanged]: handleEventCardTypeChanged,
+  [Event.Focus]: handleEventFocus,
+  [Event.Blur]: handleEventBlur,
+}
 
 export function listener() {
   const windowMessage = new EventListener(window.parent)
 
-  windowMessage.listener('message', (event) => {
-    if (event.origin !== 'https://develop.d3krxmg1839vaa.amplifyapp.com') return //URL DA APLICAÇÃO
-    const { type, data } = event.data
+  windowMessage.listener('message', (event: MessageEvent<any>) => {
+    try {
+      if (event.origin !== 'https://develop.d3krxmg1839vaa.amplifyapp.com')
+        return
+      const { eventType, data } = event.data
+      const parentNode = document.querySelector(`#${data?.field}`)
 
-    const parentNode = document.querySelector(`#${data?.fieldType}`)
-    if (!parentNode) return
+      if (!parentNode) {
+        console.error(`Parent node for field type "${data?.field}" not found`)
+        return
+      }
 
-    if (type === Event.Validity) {
-      validation(data, parentNode)
-    }
+      const handler = eventHandlers[eventType]
 
-    if (type === Event.CardTypeChanged) {
-      eventsEmitter.emit('cardTypeChanged', {
-        card: data.card,
-        parentNode: parentNode,
-      })
-    }
-
-    if (type === Event.Focus || type === Event.Blur) {
-      parentNode?.classList.toggle(CSSClasses.Focused)
-
-      eventsEmitter.emit(
-        type === EventEmits.Focus ? EventEmits.Focus : EventEmits.Blur,
-        {
-          field: data.fieldType,
-          parentNode: parentNode,
-        },
-      )
+      if (handler) {
+        handler(data, parentNode)
+      } else {
+        console.warn(`Unhandled event type: ${eventType}`)
+      }
+    } catch (error) {
+      console.error('Error handling message event:', error)
     }
   })
 }

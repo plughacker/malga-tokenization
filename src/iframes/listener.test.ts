@@ -1,4 +1,4 @@
-import { validation } from 'src/events'
+import { handGetValidationEventData } from 'src/events'
 import { listener } from './listener'
 import { CSSClasses, Event } from 'src/enums'
 import { eventsEmitter } from 'src/tokenization'
@@ -60,7 +60,7 @@ describe('listener', () => {
     messageHandler(event)
 
     expect(document.querySelector).toHaveBeenCalledWith(
-      `#${event.data.data.fieldType}`,
+      `#${event.data.data.field}`,
     )
     expect(document.querySelector).toHaveBeenCalledTimes(1)
   })
@@ -82,7 +82,7 @@ describe('listener', () => {
     const event = handleCreateMockEvent(Event.Validity)
 
     messageHandler(event)
-    expect(validation).toHaveBeenCalledWith(
+    expect(handGetValidationEventData).toHaveBeenCalledWith(
       event.data.data,
       expect.any(Element),
     )

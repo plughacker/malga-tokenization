@@ -4,7 +4,7 @@ import type {
 } from 'src/interfaces'
 import { create } from './create'
 import { Event } from 'src/enums'
-import { URL_HOSTED_FIELD } from '../constants'
+import { URL_HOSTED_FIELD } from 'src/constants'
 
 function validateConfig(config: MalgaInputFieldConfigurations): boolean {
   if (!config || typeof config !== 'object') {
@@ -33,7 +33,7 @@ function onLoadIframeField(
   iframe.contentWindow.postMessage(
     {
       type: Event.SetTypeField,
-      fieldType: fieldConfig.container,
+      field: fieldConfig.container,
       fieldConfig: fieldConfig,
       styles: config.styles,
       preventAutofill: config.preventAutofill ?? true,

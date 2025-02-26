@@ -1,7 +1,7 @@
 import { CSSClasses } from 'src/enums'
 import type { MalgaInputFieldConfiguration } from 'src/interfaces'
 import { waitingForElement } from 'src/utils'
-import { URL_HOSTED_FIELD } from '../constants'
+import { URL_HOSTED_FIELD } from 'src/constants'
 
 export function create(fieldConfig: MalgaInputFieldConfiguration) {
   const iframe = document.createElement('iframe')
