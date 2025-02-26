@@ -60,6 +60,7 @@ export function listener() {
       if (event.origin !== 'https://develop.d3krxmg1839vaa.amplifyapp.com')
         return
       const { eventType, data } = event.data
+
       const parentNode = document.querySelector(`#${data?.field}`)
 
       if (!parentNode) {

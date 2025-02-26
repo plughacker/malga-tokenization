@@ -1,4 +1,8 @@
-import type { EventTypeReturn, MalgaConfigurations } from 'src/interfaces'
+import type {
+  EventPayloadReturnObject,
+  EventTypeReturn,
+  MalgaConfigurations,
+} from 'src/interfaces'
 
 import { Tokenize } from './tokenize'
 import { Events } from './events'
@@ -27,7 +31,27 @@ export class MalgaTokenization {
     return tokenize.handle()
   }
 
-  public on(eventType: EventTypeReturn, eventHandler: (event: any) => void) {
+  /**
+   * Configures the event provider and registers an event handler for the specified event type.
+   *
+   * This method allows you to react the specifics events emitted by the MalgaTokenization component.
+   *
+   * @param eventType - The type of event to be watched. Possible values are:
+   * - 'validity': Triggered when the validity of the field data is changed (valid/invalid).
+   * - 'cardTypeChanged': Triggered when the card type is detected or changed.
+   * - 'focus': Triggered when a input field receives focus.
+   * - 'blur': Triggered when a input field loses focus.
+   * @param eventHandler - The event handler function.
+   * @returns {void}
+   */
+
+  public on<T extends EventTypeReturn>(
+    eventType: T,
+    eventHandler: (data: EventPayloadReturnObject[T]) => void,
+  ) {
     return eventsEmitter.on(eventType, eventHandler)
   }
+  // public on(eventType: EventTypeReturn, eventHandler: (event: any) => void) {
+  //   return eventsEmitter.on(eventType, eventHandler)
+  // }
 }

@@ -34,7 +34,7 @@ export class Events {
 
   public on<T extends keyof EventPayloadReturnObject>(
     eventType: T,
-    eventHandler: (payload: EventPayloadReturnObject[T]) => void,
+    eventHandler: (data: EventPayloadReturnObject[T]) => void,
   ) {
     if (!this.events[eventType]) {
       this.events[eventType] = []
@@ -45,14 +45,14 @@ export class Events {
 
   public emit<T extends keyof EventPayloadReturnObject>(
     eventType: T,
-    payload: EventPayloadReturnObject[T],
+    data: EventPayloadReturnObject[T],
   ) {
     if (!this.events[eventType]) {
       return
     }
 
     this.events[eventType]?.forEach((eventHandler) => {
-      eventHandler(payload)
+      eventHandler(data)
     })
   }
 }
