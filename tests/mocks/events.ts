@@ -1,8 +1,8 @@
-export function handleCreateMockEvent(type: string, origin?: string) {
+export function handleCreateMockEvent(eventType: string, origin?: string) {
   const eventMocked = {
     origin: origin ?? 'https://develop.d3krxmg1839vaa.amplifyapp.com',
     data: {
-      type: type,
+      eventType: eventType,
       data: {
         field: 'card-number',
       },

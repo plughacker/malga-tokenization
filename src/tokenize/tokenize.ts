@@ -25,7 +25,7 @@ export class Tokenize {
     return new Promise((resolve, reject) => {
       const messageHandler = (event: MessageEvent) => {
         if (!this.isValidOrigin(event.origin)) {
-          console.error('Unauthorized origin:', event.origin)
+          console.error('Unauthorized')
           return reject(new Error('Unauthorized origin'))
         }
 

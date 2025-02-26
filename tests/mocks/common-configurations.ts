@@ -33,7 +33,7 @@ export const configurationsSDK: MalgaConfigurations = {
 }
 
 export const configurationWithSubmitData = {
-  type: 'submit',
+  eventType: 'submit',
   data: {
     authorizationData: {
       clientId: 'test-client-id',
