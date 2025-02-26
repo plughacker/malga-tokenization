@@ -1,5 +1,3 @@
-// import type { EventTypePostMessage, EventTypeReturn } from 'src/interfaces'
-
 import type {
   EventTypeListener,
   EventTypePostMessage,
