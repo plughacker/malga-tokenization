@@ -57,15 +57,10 @@ export function listener() {
 
   windowMessage.listener('message', (event: MessageEvent<any>) => {
     try {
-      if (event.origin !== 'https://hosted-fields.dev.malga.io/') return
       const { eventType, data } = event.data
-
       const parentNode = document.querySelector(`#${data?.field}`)
 
-      if (!parentNode) {
-        console.error(`Parent node for field type "${data?.field}" not found`)
-        return
-      }
+      if (!parentNode) return
 
       const handler = eventHandlers[eventType]
 
