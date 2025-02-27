@@ -1,6 +1,6 @@
 export function handleCreateMockEvent(eventType: string, origin?: string) {
   const eventMocked = {
-    origin: origin ?? 'https://develop.d3krxmg1839vaa.amplifyapp.com',
+    origin: origin ?? 'https://hosted-fields.dev.malga.io/',
     data: {
       eventType: eventType,
       data: {
@@ -18,7 +18,7 @@ export function handleCreateMessageEventMock(
   origin?: string,
 ) {
   const messageEvent = new MessageEvent('message', {
-    origin: origin ?? 'https://develop.d3krxmg1839vaa.amplifyapp.com',
+    origin: origin ?? 'https://hosted-fields.dev.malga.io/',
     data: { eventType: eventType, data: tokenId },
   })
 

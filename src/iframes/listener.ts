@@ -57,8 +57,7 @@ export function listener() {
 
   windowMessage.listener('message', (event: MessageEvent<any>) => {
     try {
-      if (event.origin !== 'https://develop.d3krxmg1839vaa.amplifyapp.com')
-        return
+      if (event.origin !== 'https://hosted-fields.dev.malga.io/') return
       const { eventType, data } = event.data
 
       const parentNode = document.querySelector(`#${data?.field}`)
