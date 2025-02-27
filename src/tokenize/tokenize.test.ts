@@ -37,7 +37,9 @@ describe('tokenize', () => {
     global.dispatchEvent(messageEvent)
 
     const response = await promise
-    expect(response).toEqual('623e25e1-9c40-442e-beaa-a9d7b735bdc1')
+    expect(response).toEqual({
+      tokenId: '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+    })
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
   })
 
@@ -49,22 +51,23 @@ describe('tokenize', () => {
     const messageEvent = handleCreateMessageEventMock(
       Event.Tokenize,
       undefined,
-      'https://develop.d3krxmg1839vaa.amplifyapp.com/',
+      'https://hosted-fields.dev.malga.io/',
     )
     global.dispatchEvent(messageEvent)
 
     const response = await promise
-    expect(response).toEqual(undefined)
+    expect(response).toEqual({
+      tokenId: undefined,
+    })
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
   })
+
   test('should ignore messages from different origins', async () => {
     const tokenize = new Tokenize(configurationsSDK)
     const consoleErrorSpy = vi
       .spyOn(console, 'error')
       .mockImplementation(() => {})
-
-    // Captura a rejeição
-    await expect(tokenize.handle()).rejects.toThrow('Unauthorized origin')
+    const promise = tokenize.handle()
 
     const messageEvent = handleCreateMessageEventMock(
       Event.Tokenize,
@@ -73,36 +76,11 @@ describe('tokenize', () => {
     )
     global.dispatchEvent(messageEvent)
 
-    await new Promise((resolve) => setTimeout(resolve, 10))
-
+    await expect(promise).rejects.toThrow('Unauthorized origin')
     expect(consoleErrorSpy).toHaveBeenCalledWith('Unauthorized')
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
     consoleErrorSpy.mockRestore()
   })
-
-  // test('should ignore messages from different origins', async () => {
-  //   const tokenize = new Tokenize(configurationsSDK)
-  //   const consoleErrorSpy = vi
-  //     .spyOn(console, 'error')
-  //     .mockImplementation(() => {})
-  //   const promise = tokenize.handle()
-
-  //   await expect(tokenize.handle()).rejects.toThrow('Unauthorized origin')
-
-  //   const messageEvent = handleCreateMessageEventMock(
-  //     Event.Tokenize,
-  //     '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
-  //     'https://wrong-origin.com',
-  //   )
-  //   global.dispatchEvent(messageEvent)
-
-  //   await new Promise((resolve) => setTimeout(resolve, 10))
-
-  //   expect(consoleErrorSpy).toHaveBeenCalledWith('Unauthorized')
-  //   expect(promise).not.resolves
-  //   expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
-  //   consoleErrorSpy.mockRestore()
-  // })
 
   test('should call submit with correct configurations', () => {
     const submitSpy = vi.spyOn(iframesModule, 'submit')

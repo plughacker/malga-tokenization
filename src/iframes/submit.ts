@@ -25,14 +25,4 @@ export function submit(configurations: MalgaConfigurations) {
     },
     sandbox: configurations.options?.sandbox,
   })
-
-  console.log(
-    iframePostMessage.send(Event.Submit, {
-      authorizationData: {
-        clientId: configurations.clientId,
-        apiKey: configurations.apiKey,
-      },
-      sandbox: configurations.options?.sandbox,
-    }),
-  )
 }
