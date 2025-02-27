@@ -1,13 +1,12 @@
 import { URL_HOSTED_FIELD } from 'src/constants'
 import { loaded } from './loaded'
-import { camelToKebabCase } from 'src/utils'
 import { configurationsSDK } from 'tests/mocks'
 
 vi.mock('./create', () => ({
   create: vi.fn((field) => {
     const iframe = document.createElement('iframe')
     iframe.src = URL_HOSTED_FIELD
-    iframe.name = camelToKebabCase(field)
+    iframe.name = field
     document.body.appendChild(iframe)
 
     return iframe

@@ -1,40 +1,56 @@
+import type {
+  EventTypeListener,
+  EventTypePostMessage,
+  EventPayloadReturnObject,
+} from 'src/interfaces'
+
 export class EventPostMessage {
   constructor(
     private action: Window,
     private origin: string,
   ) {}
 
-  send(type?: string, data?: any, origin?: string) {
-    this.action.postMessage({ type, data }, origin ?? this.origin)
+  send(eventType?: EventTypePostMessage, data?: any, origin?: string) {
+    this.action.postMessage({ eventType, data }, origin ?? this.origin)
   }
 }
 
 export class EventListener {
   constructor(private action: Window | HTMLElement | Document) {}
 
-  listener(type: string, eventHandler: (event: any) => void) {
-    this.action.addEventListener(type, eventHandler)
+  listener(eventType: EventTypeListener, eventHandler: (event: any) => void) {
+    this.action.addEventListener(eventType, eventHandler)
   }
 }
 
 export class Events {
-  events: { [key: string]: Array<(event: any) => void> } = {}
+  events: {
+    [key in keyof EventPayloadReturnObject]?: Array<
+      (payload: EventPayloadReturnObject[key]) => void
+    >
+  } = {}
 
-  public on(eventName: string, eventHandler: (event: any) => void) {
-    if (!this.events[eventName]) {
-      this.events[eventName] = []
+  public on<T extends keyof EventPayloadReturnObject>(
+    eventType: T,
+    eventHandler: (data: EventPayloadReturnObject[T]) => void,
+  ) {
+    if (!this.events[eventType]) {
+      this.events[eventType] = []
     }
 
-    this.events[eventName].push(eventHandler)
+    this.events[eventType]?.push(eventHandler)
   }
 
-  public emit(eventName: string, payload: any) {
-    if (!this.events[eventName]) {
+  public emit<T extends keyof EventPayloadReturnObject>(
+    eventType: T,
+    data: EventPayloadReturnObject[T],
+  ) {
+    if (!this.events[eventType]) {
       return
     }
 
-    for (const eventHandler of this.events[eventName]) {
-      eventHandler(payload)
-    }
+    this.events[eventType]?.forEach((eventHandler) => {
+      eventHandler(data)
+    })
   }
 }

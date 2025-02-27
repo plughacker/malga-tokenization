@@ -2,6 +2,7 @@ import { CSSClasses } from 'src/enums'
 import { create } from './create'
 import { URL_HOSTED_FIELD } from '../constants'
 import { camelToKebabCase } from '../utils/parsedString'
+import { configurationsSDK } from 'tests/mocks'
 
 describe('create', () => {
   function testCreatingIframe(field: string) {
@@ -10,11 +11,7 @@ describe('create', () => {
       const parentNode = document.createElement('div')
       parentNode.id = type
       document.body.appendChild(parentNode)
-
-      create(type, {
-        container: `#${type}`,
-        type: 'text',
-      })
+      create((configurationsSDK.options?.config?.fields as any)[field])
 
       const iframe = document.querySelector(`iframe[name=${type}]`)
 

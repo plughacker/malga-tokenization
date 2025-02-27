@@ -37,7 +37,9 @@ describe('tokenize', () => {
     global.dispatchEvent(messageEvent)
 
     const response = await promise
-    expect(response).toEqual('623e25e1-9c40-442e-beaa-a9d7b735bdc1')
+    expect(response).toEqual({
+      tokenId: '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+    })
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
   })
 
@@ -49,12 +51,14 @@ describe('tokenize', () => {
     const messageEvent = handleCreateMessageEventMock(
       Event.Tokenize,
       undefined,
-      'https://develop.d3krxmg1839vaa.amplifyapp.com',
+      'https://hosted-fields.dev.malga.io/',
     )
     global.dispatchEvent(messageEvent)
 
     const response = await promise
-    expect(response).toEqual(undefined)
+    expect(response).toEqual({
+      tokenId: undefined,
+    })
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
   })
 
@@ -72,10 +76,8 @@ describe('tokenize', () => {
     )
     global.dispatchEvent(messageEvent)
 
-    await new Promise((resolve) => setTimeout(resolve, 10))
-
+    await expect(promise).rejects.toThrow('Unauthorized origin')
     expect(consoleErrorSpy).toHaveBeenCalledWith('Unauthorized')
-    expect(promise).not.resolves
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
     consoleErrorSpy.mockRestore()
   })

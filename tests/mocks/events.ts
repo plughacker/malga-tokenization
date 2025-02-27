@@ -1,10 +1,11 @@
-export function handleCreateMockEvent(type: string, origin?: string) {
+export function handleCreateMockEvent(eventType: string, origin?: string) {
+  console.log({ origin })
   const eventMocked = {
-    origin: origin ?? 'https://develop.d3krxmg1839vaa.amplifyapp.com',
+    origin: origin ?? 'https://hosted-fields.dev.malga.io/',
     data: {
-      type: type,
+      eventType: eventType,
       data: {
-        fieldType: 'card-number',
+        field: 'card-number',
       },
     },
   }
@@ -13,13 +14,18 @@ export function handleCreateMockEvent(type: string, origin?: string) {
 }
 
 export function handleCreateMessageEventMock(
-  type: string,
+  eventType: string,
   tokenId?: string,
   origin?: string,
 ) {
   const messageEvent = new MessageEvent('message', {
-    origin: origin ?? 'https://develop.d3krxmg1839vaa.amplifyapp.com',
-    data: { type: type, data: tokenId },
+    origin: origin ?? 'https://hosted-fields.dev.malga.io/',
+    data: {
+      eventType: eventType,
+      data: {
+        tokenId: tokenId,
+      },
+    },
   })
 
   return messageEvent

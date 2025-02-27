@@ -6,7 +6,6 @@ export function submit(configurations: MalgaConfigurations) {
   const iframeCardNumber = document.querySelector(
     'iframe[name=card-number]',
   ) as HTMLIFrameElement
-
   if (!iframeCardNumber || !iframeCardNumber.contentWindow) {
     console.error(
       'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
