@@ -13,13 +13,13 @@ export function handleCreateMockEvent(eventType: string, origin?: string) {
 }
 
 export function handleCreateMessageEventMock(
-  type: string,
+  eventType: string,
   tokenId?: string,
   origin?: string,
 ) {
   const messageEvent = new MessageEvent('message', {
     origin: origin ?? 'https://develop.d3krxmg1839vaa.amplifyapp.com',
-    data: { type: type, data: tokenId },
+    data: { eventType: eventType, data: tokenId },
   })
 
   return messageEvent
