@@ -51,7 +51,7 @@ describe('tokenize', () => {
     const messageEvent = handleCreateMessageEventMock(
       Event.Tokenize,
       undefined,
-      'https://hosted-fields.dev.malga.io/',
+      'https://hosted-fields.dev.malga.io',
     )
     global.dispatchEvent(messageEvent)
 

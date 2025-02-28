@@ -18,6 +18,7 @@ export function submit(configurations: MalgaConfigurations) {
     '*',
   )
 
+  console.log('SDK chegou aqui no submit', iframeCardNumber, configurations)
   iframePostMessage.send(Event.Submit, {
     authorizationData: {
       clientId: configurations.clientId,
