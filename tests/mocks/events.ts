@@ -1,5 +1,4 @@
 export function handleCreateMockEvent(eventType: string, origin?: string) {
-  console.log({ origin })
   const eventMocked = {
     origin: origin ?? 'https://hosted-fields.dev.malga.io',
     data: {
