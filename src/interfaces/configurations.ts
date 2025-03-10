@@ -1,11 +1,11 @@
-export type MalgaContainer =
+export type MalgaCreditCardFields =
   | 'card-number'
   | 'card-holder-name'
   | 'card-expiration-date'
   | 'card-cvv'
 
 export interface MalgaInputFieldConfiguration {
-  container: MalgaContainer
+  container: MalgaCreditCardFields
   placeholder?: string
   type?: string
   needMask?: boolean

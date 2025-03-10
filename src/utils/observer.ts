@@ -1,7 +1,7 @@
-import type { MalgaContainer } from 'src/interfaces'
+import type { MalgaCreditCardFields } from 'src/interfaces'
 
 export function waitingForElement(
-  container: MalgaContainer,
+  container: MalgaCreditCardFields,
   appendElement: (element: any) => void,
 ) {
   const element = document.querySelector(`#${container}`)

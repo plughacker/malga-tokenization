@@ -1,5 +1,5 @@
 import type { Event } from 'src/enums'
-import type { MalgaContainer } from './configurations'
+import type { MalgaCreditCardFields } from './configurations'
 
 export type EventTypeReturn = 'validity' | 'cardTypeChanged' | 'focus' | 'blur'
 export type EventTypePostMessage = Event.Submit
@@ -19,12 +19,12 @@ interface CreditCardReturn {
 }
 
 export interface MalgaEventDataValidityErrorReturn {
-  field: MalgaContainer
+  field: MalgaCreditCardFields
   message: string
   code: string
 }
 export interface MalgaEventDataValidityReturn {
-  field: MalgaContainer
+  field: MalgaCreditCardFields
   valid: boolean
   error: MalgaEventDataValidityErrorReturn
   empty: boolean
@@ -33,13 +33,13 @@ export interface MalgaEventDataValidityReturn {
 }
 
 export interface MalgaEventDataCardTypeChangePayloadReturn {
-  field: MalgaContainer
+  field: MalgaCreditCardFields
   parentNode: Element
   card?: CreditCardReturn
 }
 
 export interface MalgaEventDataFocusBlurReturn {
-  field: MalgaContainer
+  field: MalgaCreditCardFields
   parentNode: Element
 }
 

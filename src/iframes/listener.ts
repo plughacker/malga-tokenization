@@ -2,7 +2,7 @@ import { CSSClasses, EventEmits, Event } from 'src/enums'
 import { EventListener, handGetValidationEventData } from 'src/events'
 import type {
   MalgaEventDataValidityReturn,
-  MalgaContainer,
+  MalgaCreditCardFields,
   EventHandler,
   MalgaEventDataCardTypeChangePayloadReturn,
 } from 'src/interfaces'
@@ -27,7 +27,7 @@ function handleEventCardTypeChanged(
 }
 
 function handleEventFocus(
-  data: { field: MalgaContainer },
+  data: { field: MalgaCreditCardFields },
   parentNode: Element,
 ) {
   parentNode.classList.add(CSSClasses.Focused)
@@ -37,7 +37,10 @@ function handleEventFocus(
   })
 }
 
-function handleEventBlur(data: { field: MalgaContainer }, parentNode: Element) {
+function handleEventBlur(
+  data: { field: MalgaCreditCardFields },
+  parentNode: Element,
+) {
   parentNode.classList.remove(CSSClasses.Focused)
   eventsEmitter.emit(EventEmits.Blur, {
     field: data.field,
