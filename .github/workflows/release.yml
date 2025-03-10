@@ -1,18 +1,24 @@
-name: Release
+name: release
+
 on:
-  push:
-    branches:
-      - 'release/*'
-      - 'beta/*'
-
-concurrency: ${{ github.workflow }}-${{ github.ref }}
-
-env:
-  HUSKY: 0
+  release:
+    types: [created]
 
 jobs:
+  build:
+    if: github.repository == 'plughacker/malga-tokenization'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+
   test:
     if: github.repository == 'plughacker/malga-tokenization'
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,9 +31,13 @@ jobs:
 
   release:
     name: Changesets Release
-    if: github.repository == 'plughacker/malga-tokenization'
-    needs: test
+    needs: [test, build]
+    if: github.repository == 'plughacker/mailman'
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+      pull-requests: write
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -38,17 +48,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
+          registry-url: 'https://npm.pkg.github.com'
           cache: yarn
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: Setup npm auth
-        run: |
-          echo "registry=https://registry.npmjs.org" >> ~/.npmrc
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
-
-      - name: PR / Publish
+      - name: Release and Publish
         id: changesets
         uses: changesets/action@v1
         with:
@@ -56,7 +64,7 @@ jobs:
           commit: 'chore: update version for release'
           title: 'chore: update version for release'
           publish: yarn release
-          createGithubReleases: false
+          createGithubReleases: true
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
