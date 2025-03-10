@@ -29,22 +29,42 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn test:ci
 
-  publish:
-    if: github.repository == 'plughacker/malga-tokenization'
-    needs: [build, test]
+  release:
+    name: Changesets Release
+    needs: [test, build]
+    if: github.repository == 'plughacker/mailman'
     runs-on: ubuntu-latest
     permissions:
       packages: write
-      contents: read
+      contents: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
         with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          registry-url: 'https://npm.pkg.github.com'
           cache: yarn
-      - run: yarn install --frozen-lockfile
-      - run: yarn build
-      - run: yarn publish --access public
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install dependencies
+        uses: bahmutov/npm-install@v1
+
+      - name: Release and Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: yarn version
+          commit: 'chore: update version for release'
+          title: 'chore: update version for release'
+          publish: yarn release
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
