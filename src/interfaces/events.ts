@@ -18,10 +18,15 @@ interface CreditCardReturn {
   }
 }
 
+export interface MalgaEventDataValidityErrorReturn {
+  field: MalgaContainer
+  message: string
+  code: string
+}
 export interface MalgaEventDataValidityReturn {
   field: MalgaContainer
   valid: boolean
-  error: boolean
+  error: MalgaEventDataValidityErrorReturn
   empty: boolean
   potentialValid: boolean
   parentNode: Element | null
