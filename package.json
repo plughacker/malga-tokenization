@@ -1,5 +1,6 @@
 {
   "name": "@malga/tokenization",
+  "version": "0.0.1",
   "description": "Simple way to tokenize cards with Malga",
   "repository": "git@github.com:plughacker/malga-tokenization.git",
   "author": "Malga <engineer@malga.io>",
@@ -41,7 +42,8 @@
     "lint": "yarn lint:check && yarn format:check && prettier --write .",
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "test": "vitest",
-    "test:ci": "vitest --run"
+    "test:ci": "vitest --run",
+    "changeset": "changeset"
   },
   "dependencies": {
     "@changesets/changelog-github": "^0.5.1",
