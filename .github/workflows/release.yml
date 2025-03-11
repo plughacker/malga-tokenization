@@ -37,7 +37,7 @@ jobs:
   release:
     name: Changesets Release
     needs: [test, build]
-    if: github.repository == 'plughacker/mailman'
+    if: github.repository == 'plughacker/malga-tokenization'
     runs-on: ubuntu-latest
     permissions:
       packages: write
