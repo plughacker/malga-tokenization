@@ -1,6 +1,5 @@
 {
   "name": "@malga/tokenization",
-  "version": "0.0.1",
   "description": "Simple way to tokenize cards with Malga",
   "repository": "git@github.com:plughacker/malga-tokenization.git",
   "author": "Malga <engineer@malga.io>",
