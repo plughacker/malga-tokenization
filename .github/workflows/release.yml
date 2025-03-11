@@ -11,20 +11,20 @@ env:
   HUSKY: 0
 
 jobs:
-  build:
-    if: github.repository == 'plughacker/malga-tokenization'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: yarn
-      - run: yarn install --frozen-lockfile
+  # build:
+  #   if: github.repository == 'plughacker/malga-tokenization'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 20
+  #         cache: yarn
+  #     - run: yarn install --frozen-lockfile
 
   test:
     if: github.repository == 'plughacker/malga-tokenization'
-    needs: build
+    # needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -37,7 +37,7 @@ jobs:
 
   release:
     name: Changesets Release
-    needs: [test, build]
+    needs: [test]
     if: github.repository == 'plughacker/malga-tokenization'
     runs-on: ubuntu-latest
     permissions:
