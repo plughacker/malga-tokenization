@@ -41,7 +41,8 @@
     "lint": "yarn lint:check && yarn format:check && prettier --write .",
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "test": "vitest",
-    "test:ci": "vitest --run"
+    "test:ci": "vitest --run",
+    "changeset": "changeset"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
