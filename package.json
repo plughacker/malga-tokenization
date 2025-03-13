@@ -44,6 +44,8 @@
     "test": "vitest",
     "test:ci": "vitest --run",
     "changeset": "changeset",
+    "version": "changeset version",
+    "prerelease": "yarn build",
     "release": "changeset publish"
   },
   "devDependencies": {
