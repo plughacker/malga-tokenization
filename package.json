@@ -43,7 +43,8 @@
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "test": "vitest",
     "test:ci": "vitest --run",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "release": "changeset publish"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.7.1",
