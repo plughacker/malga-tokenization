@@ -1,17 +1,17 @@
-import { Malga } from './common/malga'
-
 import type {
+  EventPayloadReturnObject,
+  EventTypeReturn,
   MalgaConfigurations,
-  MalgaConfigurationsElements,
-  MalgaFormElements,
-} from 'src/common/interfaces'
+} from 'src/interfaces'
 
-import { AsyncTokenize } from './async-tokenize'
 import { Tokenize } from './tokenize'
+import { Events } from './events'
+import { listener, loaded } from './iframes'
+
+export const eventsEmitter = new Events()
 
 export class MalgaTokenization {
-  private readonly malga: Malga
-  private readonly elements: MalgaFormElements
+  private readonly configurations: MalgaConfigurations
 
   constructor(configurations: MalgaConfigurations) {
     if (!configurations.apiKey || !configurations.clientId) {
@@ -20,28 +20,38 @@ export class MalgaTokenization {
       )
     }
 
-    this.malga = new Malga(configurations)
-    this.elements = this.handleElements(configurations.options?.elements)
-  }
+    this.configurations = configurations
 
-  private handleElements(elements?: MalgaConfigurationsElements) {
-    return {
-      form: elements?.form || 'data-malga-tokenization-form',
-      holderName: elements?.holderName || 'data-malga-tokenization-holder-name',
-      cvv: elements?.cvv || 'data-malga-tokenization-cvv',
-      expirationDate:
-        elements?.expirationDate || 'data-malga-tokenization-expiration-date',
-      number: elements?.number || 'data-malga-tokenization-number',
-    }
-  }
-
-  public async init() {
-    const asyncTokenize = new AsyncTokenize(this.malga, this.elements)
-    return asyncTokenize.handle()
+    loaded(configurations.options?.config)
+    listener()
   }
 
   public async tokenize() {
-    const tokenize = new Tokenize(this.malga, this.elements)
+    const tokenize = new Tokenize(this.configurations)
     return tokenize.handle()
   }
+
+  /**
+   * Configures the event provider and registers an event handler for the specified event type.
+   *
+   * This method allows you to react the specifics events emitted by the MalgaTokenization component.
+   *
+   * @param eventType - The type of event to be watched. Possible values are:
+   * - 'validity': Triggered when the validity of the field data is changed (valid/invalid).
+   * - 'cardTypeChanged': Triggered when the card type is detected or changed.
+   * - 'focus': Triggered when a input field receives focus.
+   * - 'blur': Triggered when a input field loses focus.
+   * @param eventHandler - The event handler function.
+   * @returns {void}
+   */
+
+  public on<T extends EventTypeReturn>(
+    eventType: T,
+    eventHandler: (data: EventPayloadReturnObject[T]) => void,
+  ) {
+    return eventsEmitter.on(eventType, eventHandler)
+  }
+  // public on(eventType: EventTypeReturn, eventHandler: (event: any) => void) {
+  //   return eventsEmitter.on(eventType, eventHandler)
+  // }
 }
