@@ -2,4 +2,4 @@
 '@malga/tokenization': minor
 ---
 
-Add debug tag
+Enabled tag debug
