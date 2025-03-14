@@ -29,5 +29,6 @@ export interface MalgaConfigurations {
   options: {
     config: MalgaInputFieldConfigurations
     sandbox?: boolean
+    debug?: boolean
   }
 }
