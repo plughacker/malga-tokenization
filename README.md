@@ -76,6 +76,7 @@ const malgaTokenization = new MalgaTokenization({
         },
       },
       styles: {
+        // With this object, it's possible to change the styles of input components
         input: {
           color: '#000',
           'font-size': '16px',
