@@ -35,8 +35,8 @@ function onLoadIframeField(
       type: Event.SetTypeField,
       field: fieldConfig.container,
       fieldConfig: fieldConfig,
-      styles: config.styles,
-      preventAutofill: config.preventAutofill ?? true,
+      styles: config?.styles,
+      preventAutofill: config?.preventAutofill,
     },
     URL_HOSTED_FIELD,
   )
