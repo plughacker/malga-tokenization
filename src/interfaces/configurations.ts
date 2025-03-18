@@ -23,12 +23,13 @@ export interface MalgaInputFieldConfigurations {
   preventAutofill?: boolean
 }
 
+export interface MalgaOptions {
+  config: MalgaInputFieldConfigurations
+  sandbox?: boolean
+  debug?: boolean
+}
 export interface MalgaConfigurations {
   apiKey: string
   clientId: string
-  options: {
-    config: MalgaInputFieldConfigurations
-    sandbox?: boolean
-    debug?: boolean
-  }
+  options: MalgaOptions
 }

@@ -22,7 +22,7 @@ export class MalgaTokenization {
 
     this.configurations = configurations
 
-    loaded(configurations.options?.config)
+    loaded(configurations.options)
     listener()
   }
 
