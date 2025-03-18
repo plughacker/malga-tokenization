@@ -5,7 +5,7 @@ import type {
 } from 'src/interfaces'
 import { create } from './create'
 import { Event } from 'src/enums'
-import { URL_HOSTED_FIELD } from 'src/constants'
+import { gettingOriginEvent } from 'src/utils'
 
 function validateConfig(config: MalgaInputFieldConfigurations): boolean {
   if (!config || typeof config !== 'object') {
@@ -31,6 +31,9 @@ function onLoadIframeField(
     return
   }
 
+  const origin = gettingOriginEvent(options.debug, options.sandbox)
+  console.log('dentro do loaded', origin)
+
   iframe.contentWindow.postMessage(
     {
       type: Event.SetTypeField,
@@ -41,7 +44,7 @@ function onLoadIframeField(
       debug: options.debug,
       sandbox: options.sandbox,
     },
-    URL_HOSTED_FIELD,
+    origin,
   )
 }
 
@@ -55,7 +58,7 @@ export function loaded(options: MalgaOptions) {
   fields.forEach((field) => {
     const fieldConfig =
       options.config.fields[field as keyof typeof options.config.fields]
-    const iframe = create(fieldConfig)
+    const iframe = create(fieldConfig, options.debug, options.sandbox)
 
     if (!iframe) {
       console.error(`Error to access the iframe of ${field}`)
