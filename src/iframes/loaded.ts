@@ -5,7 +5,6 @@ import type {
 } from 'src/interfaces'
 import { create } from './create'
 import { Event } from 'src/enums'
-import { gettingOriginEvent } from 'src/utils'
 
 function validateConfig(config: MalgaInputFieldConfigurations): boolean {
   if (!config || typeof config !== 'object') {
@@ -31,9 +30,6 @@ function onLoadIframeField(
     return
   }
 
-  const origin = gettingOriginEvent(options.debug, options.sandbox)
-  console.log('dentro do loaded', origin)
-
   iframe.contentWindow.postMessage(
     {
       type: Event.SetTypeField,
@@ -44,7 +40,7 @@ function onLoadIframeField(
       debug: options.debug,
       sandbox: options.sandbox,
     },
-    origin,
+    '*',
   )
 }
 

@@ -8,7 +8,6 @@ export function create(
   sandbox?: boolean,
 ) {
   const origin = gettingOriginEvent(debug, sandbox)
-  console.log('dentro do create', origin)
   const iframe = document.createElement('iframe')
 
   iframe.setAttribute('name', fieldConfig.container)
