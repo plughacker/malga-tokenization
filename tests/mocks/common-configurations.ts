@@ -28,7 +28,6 @@ export const configurationsSDK: MalgaConfigurations = {
         },
       },
     },
-    sandbox: true,
   },
 }
 
@@ -39,6 +38,5 @@ export const configurationWithSubmitData = {
       clientId: 'test-client-id',
       apiKey: 'test-api-key',
     },
-    sandbox: true,
   },
 }
