@@ -17,7 +17,7 @@ export class Tokenize {
       this.configurations.options?.debug,
       this.configurations.options?.sandbox,
     )
-    console.log('dentro do envio do submit', origin, allowedOrigin)
+
     return origin === allowedOrigin
   }
 
@@ -33,15 +33,7 @@ export class Tokenize {
     return new Promise((resolve, reject) => {
       const messageHandler = (event: MessageEvent<MalgaResponse>) => {
         if (!this.isValidOrigin(event.origin)) {
-          const allowedOrigin = gettingOriginEvent(
-            this.configurations.options?.debug,
-            this.configurations.options?.sandbox,
-          )
-          console.log({ allowedOrigin })
-          console.error(
-            `Unauthorized origin: ${event.origin}. Expected: ${allowedOrigin}`,
-          )
-          return reject(new Error(`Unauthorized origin: ${event.origin}`))
+          return reject(new Error('Unauthorized origin'))
         }
 
         if (event.data.eventType === Event.Tokenize) {

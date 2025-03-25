@@ -1,6 +1,6 @@
 import { CSSClasses } from 'src/enums'
 import { create } from './create'
-import { URL_HOSTED_FIELD_DEV } from '../constants'
+import { URL_HOSTED_FIELD_PROD } from '../constants'
 import { camelToKebabCase } from '../utils/parsedString'
 import { configurationsSDK } from 'tests/mocks'
 
@@ -16,7 +16,7 @@ describe('create', () => {
       const iframe = document.querySelector(`iframe[name=${type}]`)
 
       expect(iframe).toBeInTheDocument()
-      expect(iframe).toHaveAttribute('src', URL_HOSTED_FIELD_DEV)
+      expect(iframe).toHaveAttribute('src', URL_HOSTED_FIELD_PROD)
       expect(iframe).toHaveAttribute('name', type)
       expect(parentNode.classList.contains(CSSClasses.Default)).toBe(true)
       expect(parentNode.getAttribute('id')).toBe(type)

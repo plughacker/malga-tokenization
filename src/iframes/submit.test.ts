@@ -27,7 +27,7 @@ describe('submit', () => {
     expect(iframeCardNumber.contentWindow?.postMessage).toHaveBeenCalledTimes(1)
     expect(iframeCardNumber.contentWindow?.postMessage).toHaveBeenCalledWith(
       configurationWithSubmitData,
-      '*',
+      'https://hosted-fields.malga.io',
     )
   })
 
