@@ -48,11 +48,26 @@ function handleEventBlur(
   })
 }
 
+function handleEventUpdateCardValues(data: any) {
+  console.log({ data })
+  console.log('chegou aqui dentro do handle')
+
+  const currentCardData = JSON.parse(sessionStorage.getItem('card') || '{}')
+
+  const updatedCardData = {
+    ...currentCardData,
+    [data.field]: data.value,
+  }
+
+  sessionStorage.setItem('card', JSON.stringify(updatedCardData))
+}
+
 const eventHandlers: { [key: string]: EventHandler<any> } = {
   [Event.Validity]: handleEventValidity,
   [Event.CardTypeChanged]: handleEventCardTypeChanged,
   [Event.Focus]: handleEventFocus,
   [Event.Blur]: handleEventBlur,
+  [Event.UpdateCardValues]: handleEventUpdateCardValues,
 }
 
 export function listener() {
@@ -61,6 +76,7 @@ export function listener() {
   windowMessage.listener('message', (event: MessageEvent<any>) => {
     try {
       const { eventType, data } = event.data
+
       const parentNode = document.querySelector(`#${data?.field}`)
 
       if (!parentNode) return

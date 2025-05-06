@@ -19,10 +19,16 @@ export function submit(configurations: MalgaConfigurations) {
     configurations.options?.sandbox,
   )
 
+  const getSessionStorageCard = JSON.parse(
+    sessionStorage.getItem('card') || '{}',
+  )
+
   const iframePostMessage = new EventPostMessage(
     iframeCardNumber.contentWindow!,
     origin,
   )
+
+  console.log('chegou aqui no submit', iframePostMessage)
 
   iframePostMessage.send(Event.Submit, {
     authorizationData: {
@@ -31,5 +37,6 @@ export function submit(configurations: MalgaConfigurations) {
     },
     sandbox: configurations.options?.sandbox,
     debug: configurations.options.debug,
+    card: getSessionStorageCard,
   })
 }
