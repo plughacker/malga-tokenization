@@ -37,8 +37,8 @@ function onLoadIframeField(
       fieldConfig: fieldConfig,
       styles: options.config?.styles,
       preventAutofill: options.config?.preventAutofill,
-      debug: options.debug,
-      sandbox: options.sandbox,
+      debug: options?.debug,
+      sandbox: options?.sandbox,
     },
     '*',
   )

@@ -1,8 +1,8 @@
 import { CSSClasses } from 'src/enums'
 import { create } from './create'
-import { URL_HOSTED_FIELD_PROD } from '../constants'
 import { camelToKebabCase } from '../utils/parsedString'
 import { configurationsSDK } from 'tests/mocks'
+import { URL_HOSTED_FIELD_PROD } from 'src/constants'
 
 describe('create', () => {
   function testCreatingIframe(field: string) {
@@ -11,6 +11,7 @@ describe('create', () => {
       const parentNode = document.createElement('div')
       parentNode.id = type
       document.body.appendChild(parentNode)
+
       create((configurationsSDK.options?.config?.fields as any)[field])
 
       const iframe = document.querySelector(`iframe[name=${type}]`)
@@ -29,6 +30,5 @@ describe('create', () => {
     'cardExpirationDate',
     'cardCvv',
   ]
-
   fields.forEach(testCreatingIframe)
 })

@@ -9,10 +9,9 @@ export function create(
 ) {
   const origin = gettingOriginEvent(debug, sandbox)
   const iframe = document.createElement('iframe')
-  console.log({ origin })
 
   iframe.setAttribute('name', fieldConfig.container)
-  iframe.setAttribute('src', 'https://develop.d3krxmg1839vaa.amplifyapp.com')
+  iframe.setAttribute('src', origin)
   iframe.setAttribute('width', '100%')
   iframe.setAttribute('height', '100%')
   iframe.setAttribute('frameborder', '0')

@@ -38,5 +38,8 @@ export const configurationWithSubmitData = {
       clientId: 'test-client-id',
       apiKey: 'test-api-key',
     },
+    card: {},
+    sandbox: undefined,
+    debug: undefined,
   },
 }

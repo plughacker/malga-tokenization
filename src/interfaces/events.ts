@@ -7,9 +7,14 @@ export type EventTypeReturn =
   | 'focus'
   | 'blur'
   | 'updateCardValues'
-export type EventTypePostMessage = Event.Submit
+export type EventTypePostMessage = Event.Submit | 'updateField'
 export type EventTypeListener = 'message'
-export type EventHandler<T> = (data: T, parentNode: Element) => void
+export type EventHandler<T> = (
+  data: T,
+  parentNode: Element,
+  debug?: boolean,
+  sandbox?: boolean,
+) => void
 
 interface CreditCardReturn {
   niceType: string
