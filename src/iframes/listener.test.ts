@@ -44,7 +44,7 @@ describe('listener', () => {
   })
 
   test('should add a message event listener to the window', () => {
-    listener()
+    listener(true, false)
 
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'message',
@@ -53,7 +53,7 @@ describe('listener', () => {
   })
 
   test('should get the data and type from event with correct origin', () => {
-    listener()
+    listener(true, false)
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
     const event = handleCreateMockEvent('successOrigin')
@@ -76,7 +76,7 @@ describe('listener', () => {
   // })
 
   test.skip('should call validation for Validity event type', () => {
-    listener()
+    listener(true, false)
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
     const event = handleCreateMockEvent(Event.Validity)
@@ -89,7 +89,7 @@ describe('listener', () => {
   })
 
   test('should emit CardTypeChanged event for CardTypeChanged event type', () => {
-    listener()
+    listener(true, false)
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
     const event = handleCreateMockEvent(Event.CardTypeChanged)
 
@@ -114,7 +114,7 @@ describe('listener', () => {
   })
 
   test('should emit Focus event for Focus event type', () => {
-    listener()
+    listener(true, false)
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
     const event = handleCreateMockEvent(Event.Focus)
@@ -130,7 +130,7 @@ describe('listener', () => {
   test('should emit Blur event for Blur event type', () => {
     parentNode.classList.add(CSSClasses.Focused)
 
-    listener()
+    listener(true, false)
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
     const event = handleCreateMockEvent(Event.Blur)
