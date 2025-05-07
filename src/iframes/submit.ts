@@ -7,6 +7,7 @@ export function submit(configurations: MalgaConfigurations) {
   const iframeCardNumber = document.querySelector(
     'iframe[name=card-number]',
   ) as HTMLIFrameElement
+
   if (!iframeCardNumber || !iframeCardNumber.contentWindow) {
     console.error(
       'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
@@ -16,7 +17,11 @@ export function submit(configurations: MalgaConfigurations) {
 
   const origin = gettingOriginEvent(
     configurations.options.debug,
-    configurations.options?.sandbox,
+    configurations.options.sandbox,
+  )
+
+  const getSessionStorageCard = JSON.parse(
+    sessionStorage.getItem('malga-card') || '{}',
   )
 
   const iframePostMessage = new EventPostMessage(
@@ -31,5 +36,6 @@ export function submit(configurations: MalgaConfigurations) {
     },
     sandbox: configurations.options?.sandbox,
     debug: configurations.options.debug,
+    card: getSessionStorageCard,
   })
 }

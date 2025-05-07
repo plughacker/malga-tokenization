@@ -1,10 +1,20 @@
 import type { Event } from 'src/enums'
 import type { MalgaCreditCardFields } from './configurations'
 
-export type EventTypeReturn = 'validity' | 'cardTypeChanged' | 'focus' | 'blur'
-export type EventTypePostMessage = Event.Submit
+export type EventTypeReturn =
+  | 'validity'
+  | 'cardTypeChanged'
+  | 'focus'
+  | 'blur'
+  | 'updateCardValues'
+export type EventTypePostMessage = Event.Submit | 'updateField'
 export type EventTypeListener = 'message'
-export type EventHandler<T> = (data: T, parentNode: Element) => void
+export type EventHandler<T> = (
+  data: T,
+  parentNode: Element,
+  debug?: boolean,
+  sandbox?: boolean,
+) => void
 
 interface CreditCardReturn {
   niceType: string
@@ -43,9 +53,17 @@ export interface MalgaEventDataFocusBlurReturn {
   parentNode: Element
 }
 
+export interface MalgaEventDataUpdateCardValuesReturn {
+  field: MalgaCreditCardFields
+  value: string
+  debug?: boolean
+  sandbox?: boolean
+}
+
 export interface EventPayloadReturnObject {
   cardTypeChanged: MalgaEventDataCardTypeChangePayloadReturn
   validity: MalgaEventDataValidityReturn
   focus: MalgaEventDataFocusBlurReturn
   blur: MalgaEventDataFocusBlurReturn
+  updateCardValues: MalgaEventDataUpdateCardValuesReturn
 }
