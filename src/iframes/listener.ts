@@ -53,7 +53,10 @@ function handleEventUpdateCardValues(data: {
   field: MalgaCreditCardFields
   value: string
 }) {
-  const currentCardData = JSON.parse(sessionStorage.getItem('card') || '{}')
+  const currentCardData = JSON.parse(
+    sessionStorage.getItem('malga-card') || '{}',
+  )
+
   const camelCaseField = data.field.replace(/-([a-z])/g, (g: string) =>
     g[1].toUpperCase(),
   )
