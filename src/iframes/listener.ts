@@ -78,7 +78,6 @@ export function listener(debug?: boolean, sandbox?: boolean) {
   const windowMessage = new EventListener(window.parent)
 
   windowMessage.listener('message', (event: MessageEvent<any>) => {
-    console.log(event.origin)
     const origin = gettingOriginEvent(debug, sandbox)
 
     if (event.origin !== origin) {
