@@ -18,8 +18,9 @@ export class MalgaTokenization {
       console.error(
         'Missing API key. Pass it to the constructor `new MalgaTokenization({ apiKey: "YOUR_API_KEY", clientId: "YOUR_CLIENT_ID" })`',
       )
-      sessionStorage.removeItem('malga-card')
     }
+
+    sessionStorage.removeItem('malga-card')
 
     this.configurations = configurations
 
