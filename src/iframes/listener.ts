@@ -53,7 +53,6 @@ function handleEventUpdateCardValues(data: {
   field: MalgaCreditCardFields
   value: string
 }) {
-  
   const currentCardData = JSON.parse(
     sessionStorage.getItem('malga-card') || '{}',
   )
