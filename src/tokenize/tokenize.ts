@@ -33,7 +33,11 @@ export class Tokenize {
     return new Promise((resolve, reject) => {
       const messageHandler = (event: MessageEvent<MalgaResponse>) => {
         if (!this.isValidOrigin(event.origin)) {
-          return reject(new Error('Unauthorized origin'))
+          return reject(
+            new Error(
+              `Unauthorized origin: ${event.origin}, origin should be ${gettingOriginEvent()}`,
+            ),
+          )
         }
 
         if (event.data.eventType === Event.Tokenize) {
