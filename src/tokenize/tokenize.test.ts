@@ -63,12 +63,12 @@ describe('tokenize', () => {
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
   })
 
-  test.skip('should ignore messages from different origins', async () => {
+  test('should ignore messages from different origins', async () => {
     const tokenize = new Tokenize(configurationsSDK)
     const consoleErrorSpy = vi
       .spyOn(console, 'error')
       .mockImplementation(() => {})
-    const promise = tokenize.handle()
+    tokenize.handle()
 
     const messageEvent = handleCreateMessageEventMock(
       Event.Tokenize,
@@ -77,8 +77,9 @@ describe('tokenize', () => {
     )
     global.dispatchEvent(messageEvent)
 
-    await expect(promise).rejects.toThrow('Unauthorized origin')
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Unauthorized origin')
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      `Unauthorized origin: https://wrong-origin.com, origin should be https://hosted-fields.malga.io`,
+    )
     expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
     consoleErrorSpy.mockRestore()
   })
