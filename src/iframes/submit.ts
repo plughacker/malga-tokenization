@@ -1,6 +1,7 @@
 import type { MalgaConfigurations } from 'src/interfaces'
 import { Event } from 'src/enums'
 import { EventPostMessage } from 'src/events'
+import { gettingOriginEvent } from 'src/utils'
 
 export function submit(configurations: MalgaConfigurations) {
   const iframeCardNumber = document.querySelector(
@@ -13,17 +14,27 @@ export function submit(configurations: MalgaConfigurations) {
     return
   }
 
-  const iframePostMessage = new EventPostMessage(
-    iframeCardNumber.contentWindow!,
-    '*',
+  const origin = gettingOriginEvent(
+    configurations.options.debug,
+    configurations.options.sandbox,
   )
 
-  console.log('SDK chegou aqui no submit', iframeCardNumber, configurations)
+  const getSessionStorageCard = JSON.parse(
+    sessionStorage.getItem('malga-card') || '{}',
+  )
+
+  const iframePostMessage = new EventPostMessage(
+    iframeCardNumber.contentWindow!,
+    origin,
+  )
+
   iframePostMessage.send(Event.Submit, {
     authorizationData: {
       clientId: configurations.clientId,
       apiKey: configurations.apiKey,
     },
     sandbox: configurations.options?.sandbox,
+    debug: configurations.options.debug,
+    card: getSessionStorageCard,
   })
 }

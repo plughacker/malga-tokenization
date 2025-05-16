@@ -20,10 +20,12 @@ export class MalgaTokenization {
       )
     }
 
+    sessionStorage.removeItem('malga-card')
+
     this.configurations = configurations
 
-    loaded(configurations.options?.config)
-    listener()
+    loaded(configurations.options)
+    listener(configurations.options.debug, configurations.options.sandbox)
   }
 
   public async tokenize() {

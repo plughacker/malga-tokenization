@@ -7,6 +7,7 @@ import type {
   MalgaEventDataCardTypeChangePayloadReturn,
 } from 'src/interfaces'
 import { eventsEmitter } from 'src/tokenization'
+import { gettingOriginEvent } from 'src/utils'
 
 function handleEventValidity(
   data: MalgaEventDataValidityReturn,
@@ -48,19 +49,47 @@ function handleEventBlur(
   })
 }
 
+function handleEventUpdateCardValues(data: {
+  field: MalgaCreditCardFields
+  value: string
+}) {
+  const currentCardData = JSON.parse(
+    sessionStorage.getItem('malga-card') || '{}',
+  )
+
+  const camelCaseField = data.field.replace(/-([a-z])/g, (g: string) =>
+    g[1].toUpperCase(),
+  )
+
+  const updatedCardData = {
+    ...currentCardData,
+    [camelCaseField]: data.value,
+  }
+
+  sessionStorage.setItem('malga-card', JSON.stringify(updatedCardData))
+}
+
 const eventHandlers: { [key: string]: EventHandler<any> } = {
   [Event.Validity]: handleEventValidity,
   [Event.CardTypeChanged]: handleEventCardTypeChanged,
   [Event.Focus]: handleEventFocus,
   [Event.Blur]: handleEventBlur,
+  [Event.UpdateCardValues]: handleEventUpdateCardValues,
 }
 
-export function listener() {
+export function listener(debug?: boolean, sandbox?: boolean) {
   const windowMessage = new EventListener(window.parent)
 
   windowMessage.listener('message', (event: MessageEvent<any>) => {
+    const origin = gettingOriginEvent(debug, sandbox)
+
+    if (event.origin !== origin) {
+      return `Unauthorized origin: ${event.origin}`
+    }
+
     try {
       const { eventType, data } = event.data
+
       const parentNode = document.querySelector(`#${data?.field}`)
 
       if (!parentNode) return

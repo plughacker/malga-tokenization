@@ -11,10 +11,6 @@ Simple way to tokenize cards with Malga
 
 ## Getting Started
 
-There are two ways to use Malga Tokenization that will depend on how your application is structured,
-basically, it depends on whether you will handle the form submit on the client-side or on the server-side.
-For more details on the implementation, you can access our documentation by [clicking here](https://docs.malga.io/docs/sdks/tokenization/intro).
-
 First of all, you'll need to install our SDK into your project:
 
 ```bash
@@ -25,38 +21,28 @@ npm install @malga/tokenization
 pnpm add @malga/tokenization
 ```
 
-### Sync Tokenization
-
-To handle the form on the client-side, you'll need to:
-
 1. Add the identification keys for each field involving card data in your form
 
 ```html
-<form data-malga-tokenization-form>
-  <input
-    data-malga-tokenization-holder-name
-    name="holderName"
-    type="text"
-    placeholder="Card Holder Name"
-  />
-  <input
-    data-malga-tokenization-number
-    name="number"
-    type="number"
-    placeholder="Card Number"
-  />
-  <input
-    data-malga-tokenization-expiration-date
-    name="expirationDate"
-    type="text"
-    placeholder="Card Expiration Date"
-  />
-  <input
-    data-malga-tokenization-cvv
-    name="cvv"
-    type="number"
-    placeholder="Card CVV"
-  />
+<form onSubmit="{handleGetTokenId}">
+  <section>
+    <div className="form-group">
+      <label htmlFor="card-number">Card Number</label>
+      <div id="card-number" className="form-control"></div>
+    </div>
+    <div className="form-group">
+      <label htmlFor="card-holder-name">Card Holder Name</label>
+      <div id="card-holder-name" className="form-control"></div>
+    </div>
+    <div className="form-group">
+      <label htmlFor="card-cvv">Card CVV</label>
+      <div id="card-cvv" className="form-control"></div>
+    </div>
+    <div className="form-group">
+      <label htmlFor="card-expiration-date">Card Expiration Date</label>
+      <div id="card-expiration-date" className="form-control"></div>
+    </div>
+  </section>
   <button type="submit">Submit</button>
 </form>
 ```
@@ -69,7 +55,54 @@ import { MalgaTokenization } from '@malga/tokenization'
 const malgaTokenization = new MalgaTokenization({
   apiKey: '<YOUR_API_KEY>',
   clientId: '<YOUR_CLIENT_ID>',
-  options: { sandbox: true },
+  options: {
+    config: {
+      fields: {
+        cardNumber: {
+          container: 'card-number',
+          placeholder: '9999 9999 9999 9999',
+        },
+        cardHolderName: {
+          container: 'card-holder-name',
+          placeholder: 'Its a test',
+        },
+        cardExpirationDate: {
+          container: 'card-expiration-date',
+          placeholder: 'MM/YY',
+        },
+        cardCvv: {
+          container: 'card-cvv',
+          placeholder: '999',
+        },
+      },
+      styles: {
+        // With this object, it's possible to change the styles of input components
+        input: {
+          color: '#000',
+          'font-size': '16px',
+        },
+      },
+      preventAutofill: false,
+    },
+    sandbox: true,
+  },
+})
+
+// You can use others events like:
+malgaTokenization.on('cardTypeChanged', (event) => {
+  console.log('cardTypeChanged', event)
+})
+
+malgaTokenization.on('validity', (event) => {
+  console.log('validation', event)
+})
+
+malgaTokenization.on('blur', (event) => {
+  console.log('blur', event)
+})
+
+malgaTokenization.on('focus', (event) => {
+  console.log('blur', event)
 })
 
 async function handleSubmit(event) {
@@ -85,57 +118,7 @@ async function handleSubmit(event) {
 
 3. Submit the form and see the magic happen 💳
 
-### Form Handling Tokenization
-
-To handle the form on the server-side, you'll need to:
-
-1. Call the `init()` method in your main JS/TS file, the entrypoint of your application. This way, when the form is submitted, tokenization will occur automatically
-
-```js
-import { MalgaTokenization } from '@malga/tokenization'
-
-const malgaTokenization = new MalgaTokenization({
-  apiKey: '<YOUR_API_KEY>',
-  clientId: '<YOUR_CLIENT_ID>',
-  options: { sandbox: true },
-})
-
-malgaTokenization.init()
-```
-
-2. Add the identification keys for each field involving card data in your form
-
-```html
-<form data-malga-tokenization-form method="POST" action="/checkout">
-  <input
-    data-malga-tokenization-holder-name
-    name="holderName"
-    type="text"
-    placeholder="Card Holder Name"
-  />
-  <input
-    data-malga-tokenization-number
-    name="number"
-    type="number"
-    placeholder="Card Number"
-  />
-  <input
-    data-malga-tokenization-expiration-date
-    name="expirationDate"
-    type="text"
-    placeholder="Card Expiration Date"
-  />
-  <input
-    data-malga-tokenization-cvv
-    name="cvv"
-    type="number"
-    placeholder="Card CVV"
-  />
-  <button type="submit">Submit</button>
-</form>
-```
-
-3. Submit the form and see the magic happen. You will notice that only the card's `tokenId` will reach your server 💳
+For more details on the implementation, you can access our documentation by [clicking here](https://docs.malga.io/docs/sdks/tokenization/intro).
 
 ## Examples
 

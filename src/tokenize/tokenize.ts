@@ -2,7 +2,7 @@ import { Event } from 'src/enums'
 import { EventListener } from 'src/events'
 import { submit } from 'src/iframes'
 import { MalgaConfigurations, MalgaPayloadResponse } from 'src/interfaces'
-import { URL_HOSTED_FIELD } from '../constants'
+import { gettingOriginEvent } from 'src/utils'
 
 interface MalgaResponse {
   eventType: Event
@@ -10,12 +10,15 @@ interface MalgaResponse {
 }
 
 export class Tokenize {
-  private readonly allowedOrigins = URL_HOSTED_FIELD
-
   constructor(private readonly configurations: MalgaConfigurations) {}
 
   private isValidOrigin(origin: string): boolean {
-    return this.allowedOrigins.includes(origin)
+    const allowedOrigin = gettingOriginEvent(
+      this.configurations.options?.debug,
+      this.configurations.options?.sandbox,
+    )
+
+    return origin === allowedOrigin
   }
 
   public async handle(): Promise<MalgaPayloadResponse> {
@@ -30,8 +33,10 @@ export class Tokenize {
     return new Promise((resolve, reject) => {
       const messageHandler = (event: MessageEvent<MalgaResponse>) => {
         if (!this.isValidOrigin(event.origin)) {
-          console.error('Unauthorized')
-          return reject(new Error('Unauthorized origin'))
+          console.error(
+            `Unauthorized origin: ${event.origin}, origin should be ${gettingOriginEvent()}`,
+          )
+          return
         }
 
         if (event.data.eventType === Event.Tokenize) {

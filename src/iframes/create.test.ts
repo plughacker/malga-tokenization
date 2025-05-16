@@ -1,8 +1,8 @@
 import { CSSClasses } from 'src/enums'
 import { create } from './create'
-import { URL_HOSTED_FIELD } from '../constants'
 import { camelToKebabCase } from '../utils/parsedString'
 import { configurationsSDK } from 'tests/mocks'
+import { URL_HOSTED_FIELD_PROD } from 'src/constants'
 
 describe('create', () => {
   function testCreatingIframe(field: string) {
@@ -16,7 +16,7 @@ describe('create', () => {
       const iframe = document.querySelector(`iframe[name=${type}]`)
 
       expect(iframe).toBeInTheDocument()
-      expect(iframe).toHaveAttribute('src', URL_HOSTED_FIELD)
+      expect(iframe).toHaveAttribute('src', URL_HOSTED_FIELD_PROD)
       expect(iframe).toHaveAttribute('name', type)
       expect(parentNode.classList.contains(CSSClasses.Default)).toBe(true)
       expect(parentNode.getAttribute('id')).toBe(type)
@@ -29,6 +29,5 @@ describe('create', () => {
     'cardExpirationDate',
     'cardCvv',
   ]
-
   fields.forEach(testCreatingIframe)
 })

@@ -1,10 +1,10 @@
 import type {
   MalgaInputFieldConfiguration,
   MalgaInputFieldConfigurations,
+  MalgaOptions,
 } from 'src/interfaces'
 import { create } from './create'
 import { Event } from 'src/enums'
-import { URL_HOSTED_FIELD } from 'src/constants'
 
 function validateConfig(config: MalgaInputFieldConfigurations): boolean {
   if (!config || typeof config !== 'object') {
@@ -23,7 +23,7 @@ function validateConfig(config: MalgaInputFieldConfigurations): boolean {
 function onLoadIframeField(
   iframe: HTMLIFrameElement,
   fieldConfig: MalgaInputFieldConfiguration,
-  config: MalgaInputFieldConfigurations,
+  options: MalgaOptions,
 ) {
   if (!iframe.contentWindow) {
     console.error('iframe.contentWindow is null, cannot send postMessage')
@@ -35,29 +35,32 @@ function onLoadIframeField(
       type: Event.SetTypeField,
       field: fieldConfig.container,
       fieldConfig: fieldConfig,
-      styles: config.styles,
-      preventAutofill: config.preventAutofill ?? true,
+      styles: options.config?.styles,
+      preventAutofill: options.config?.preventAutofill,
+      debug: options?.debug,
+      sandbox: options?.sandbox,
     },
-    URL_HOSTED_FIELD,
+    '*',
   )
 }
 
-export function loaded(config: MalgaInputFieldConfigurations) {
-  if (!validateConfig(config)) {
+export function loaded(options: MalgaOptions) {
+  if (!validateConfig(options.config)) {
     return
   }
 
-  const fields = Object.keys(config.fields)
+  const fields = Object.keys(options.config.fields)
 
   fields.forEach((field) => {
-    const fieldConfig = config.fields[field as keyof typeof config.fields]
-    const iframe = create(fieldConfig)
+    const fieldConfig =
+      options.config.fields[field as keyof typeof options.config.fields]
+    const iframe = create(fieldConfig, options.debug, options.sandbox)
 
     if (!iframe) {
       console.error(`Error to access the iframe of ${field}`)
       return
     }
 
-    iframe.onload = () => onLoadIframeField(iframe, fieldConfig, config)
+    iframe.onload = () => onLoadIframeField(iframe, fieldConfig, options)
   })
 }

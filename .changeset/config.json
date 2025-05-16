@@ -1,8 +1,8 @@
 {
-  "$schema": "https://unpkg.com/@changesets/config@2.2.0/schema.json",
+  "$schema": "https://unpkg.com/@changesets/config@2.3.0/schema.json",
   "changelog": [
     "@changesets/changelog-github",
-    { "repo": "plughacker/malga-tokenization" }
+    { "repo": "plughacker/malga-checkout" }
   ],
   "commit": false,
   "fixed": [],
@@ -11,4 +11,4 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": []
-}
+} 

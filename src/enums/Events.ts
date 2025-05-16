@@ -6,6 +6,7 @@ export enum Event {
   SetTypeField = 'setTypeField',
   CardTypeChanged = 'cardTypeChanged',
   Validity = 'validity',
+  UpdateCardValues = 'updateCardValues',
 }
 
 export enum EventEmits {
@@ -13,4 +14,5 @@ export enum EventEmits {
   CardTypeChange = 'cardTypeChanged',
   Focus = 'focus',
   Blur = 'blur',
+  UpdateCardValues = 'updateCardValues',
 }
