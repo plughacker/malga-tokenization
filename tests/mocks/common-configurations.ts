@@ -43,3 +43,12 @@ export const configurationWithSubmitData = {
     debug: undefined,
   },
 }
+
+export const configSDKEachEnvironment = (debug: boolean, sandbox: boolean) => ({
+  ...configurationsSDK,
+  options: {
+    ...configurationsSDK.options,
+    ...(debug && { debug: true }),
+    ...(sandbox && { sandbox: true }),
+  },
+})

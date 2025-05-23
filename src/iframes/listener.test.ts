@@ -1,11 +1,19 @@
-import { handGetValidationEventData } from 'src/events'
 import { listener } from './listener'
 import { CSSClasses, Event } from 'src/enums'
 import { eventsEmitter } from 'src/tokenization'
-import { handleCreateMockEvent } from 'tests/mocks'
+import {
+  handleCreateMockEvent,
+  handleCreateMockValidityEvent,
+} from 'tests/mocks'
+import {
+  URL_HOSTED_FIELD_DEV,
+  URL_HOSTED_FIELD_PROD,
+  URL_HOSTED_FIELD_SANDBOX,
+} from 'src/constants'
 
 vi.mock('src/events', async () => {
   const actual = await vi.importActual('src/events')
+
   const actualExports =
     typeof actual === 'object' && actual !== null ? actual : {}
 
@@ -30,16 +38,19 @@ describe('listener', () => {
     parentNode = document.createElement('div')
 
     parentNode.id = 'card-number'
+
     vi.spyOn(parentNode.classList, 'toggle')
 
     document.querySelector = vi.fn((selector) => {
       if (selector === '#card-number') return parentNode
+
       return null
     })
   })
 
   afterEach(() => {
     vi.clearAllMocks()
+
     parentNode.classList.remove(CSSClasses.Focused)
   })
 
@@ -52,94 +63,151 @@ describe('listener', () => {
     )
   })
 
-  test('should get the data and type from event with correct origin', () => {
-    listener(true, false)
+  test.each`
+    url                         | debug    | sandbox
+    ${URL_HOSTED_FIELD_DEV}     | ${true}  | ${false}
+    ${URL_HOSTED_FIELD_SANDBOX} | ${false} | ${true}
+    ${URL_HOSTED_FIELD_PROD}    | ${false} | ${false}
+  `(
+    'should get the data and type from event with correct origin: $url',
+    ({ url, debug, sandbox }) => {
+      listener(debug, sandbox)
+
+      const messageHandler = addEventListenerSpy.mock.calls[0][1]
+
+      const event = handleCreateMockEvent('successOrigin', url)
+
+      messageHandler(event)
+
+      expect(document.querySelector).toHaveBeenCalledWith(
+        `#${event.data.data.field}`,
+      )
+
+      expect(document.querySelector).toHaveBeenCalledTimes(1)
+    },
+  )
+
+  test('should ignore messages from incorrect origins', () => {
+    listener()
+
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = handleCreateMockEvent('successOrigin')
+    const event = handleCreateMockEvent('message', 'https://wrong-origin.com')
+
     messageHandler(event)
 
-    expect(document.querySelector).toHaveBeenCalledWith(
-      `#${event.data.data.field}`,
-    )
-    expect(document.querySelector).toHaveBeenCalledTimes(1)
+    expect(document.querySelector).not.toHaveBeenCalled()
   })
 
-  // test('should ignore messages from incorrect origins', () => {
-  //   listener()
-  //   const messageHandler = addEventListenerSpy.mock.calls[0][1]
+  test.each`
+    url                         | debug    | sandbox
+    ${URL_HOSTED_FIELD_DEV}     | ${true}  | ${false}
+    ${URL_HOSTED_FIELD_SANDBOX} | ${false} | ${true}
+    ${URL_HOSTED_FIELD_PROD}    | ${false} | ${false}
+  `(
+    'should emit Validity event for Validity event type',
+    ({ url, debug, sandbox }) => {
+      listener(debug, sandbox)
 
-  //   const event = handleCreateMockEvent('message', 'https://wrong-origin.com')
+      const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-  //   messageHandler(event)
-  //   expect(document.querySelector).not.toHaveBeenCalled()
-  // })
+      const event = handleCreateMockValidityEvent(Event.Validity, url)
 
-  test.skip('should call validation for Validity event type', () => {
-    listener(true, false)
-    const messageHandler = addEventListenerSpy.mock.calls[0][1]
+      messageHandler(event)
 
-    const event = handleCreateMockEvent(Event.Validity)
+      console.log('event data', event)
 
-    messageHandler(event)
-    expect(handGetValidationEventData).toHaveBeenCalledWith(
-      event.data.data.field,
-      expect.any(Element),
-    )
-  })
+      expect(eventsEmitter.emit).toHaveBeenCalledWith('validity', {
+        field: event.data.data.field,
+        valid: event.data.data.valid,
+        empty: event.data.data.empty,
+        potentialValid: event.data.data.potentialValid,
+        parentNode: expect.any(Element),
+      })
+    },
+  )
 
-  test('should emit CardTypeChanged event for CardTypeChanged event type', () => {
-    listener(true, false)
-    const messageHandler = addEventListenerSpy.mock.calls[0][1]
-    const event = handleCreateMockEvent(Event.CardTypeChanged)
+  test.each`
+    url                         | debug    | sandbox
+    ${URL_HOSTED_FIELD_DEV}     | ${true}  | ${false}
+    ${URL_HOSTED_FIELD_SANDBOX} | ${false} | ${true}
+    ${URL_HOSTED_FIELD_PROD}    | ${false} | ${false}
+  `(
+    'should emit CardTypeChanged event for CardTypeChanged event type',
+    ({ url, debug, sandbox }) => {
+      listener(debug, sandbox)
 
-    const updateEvent = {
-      ...event,
-      data: {
-        ...event.data,
+      const messageHandler = addEventListenerSpy.mock.calls[0][1]
+
+      const event = handleCreateMockEvent(Event.CardTypeChanged, url)
+
+      const updateEvent = {
+        ...event,
         data: {
-          ...event.data.data,
-          card: 'visa',
+          ...event.data,
+          data: {
+            ...event.data.data,
+            card: 'visa',
+          },
         },
-      },
-    }
+      }
 
-    messageHandler(updateEvent)
+      messageHandler(updateEvent)
 
-    expect(eventsEmitter.emit).toHaveBeenCalledWith('cardTypeChanged', {
-      card: 'visa',
-      parentNode: expect.any(Element),
-      field: 'card-number',
-    })
-  })
+      expect(eventsEmitter.emit).toHaveBeenCalledWith('cardTypeChanged', {
+        card: 'visa',
+        parentNode: expect.any(Element),
+        field: 'card-number',
+      })
+    },
+  )
 
-  test('should emit Focus event for Focus event type', () => {
-    listener(true, false)
-    const messageHandler = addEventListenerSpy.mock.calls[0][1]
+  test.each`
+    url                         | debug    | sandbox
+    ${URL_HOSTED_FIELD_DEV}     | ${true}  | ${false}
+    ${URL_HOSTED_FIELD_SANDBOX} | ${false} | ${true}
+    ${URL_HOSTED_FIELD_PROD}    | ${false} | ${false}
+  `(
+    'should emit Focus event for Focus event type',
+    ({ url, debug, sandbox }) => {
+      listener(debug, sandbox)
 
-    const event = handleCreateMockEvent(Event.Focus)
+      const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    messageHandler(event)
-    expect(eventsEmitter.emit).toHaveBeenCalledWith('focus', {
-      field: 'card-number',
-      parentNode: expect.any(Element),
-    })
-    expect(parentNode.classList.contains(CSSClasses.Focused)).toBe(true)
-  })
+      const event = handleCreateMockEvent(Event.Focus, url)
 
-  test('should emit Blur event for Blur event type', () => {
+      messageHandler(event)
+
+      expect(eventsEmitter.emit).toHaveBeenCalledWith('focus', {
+        field: 'card-number',
+        parentNode: expect.any(Element),
+      })
+
+      expect(parentNode.classList.contains(CSSClasses.Focused)).toBe(true)
+    },
+  )
+
+  test.each`
+    url                         | debug    | sandbox
+    ${URL_HOSTED_FIELD_DEV}     | ${true}  | ${false}
+    ${URL_HOSTED_FIELD_SANDBOX} | ${false} | ${true}
+    ${URL_HOSTED_FIELD_PROD}    | ${false} | ${false}
+  `('should emit Blur event for Blur event type', ({ url, debug, sandbox }) => {
     parentNode.classList.add(CSSClasses.Focused)
 
-    listener(true, false)
+    listener(debug, sandbox)
+
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
-    const event = handleCreateMockEvent(Event.Blur)
+    const event = handleCreateMockEvent(Event.Blur, url)
 
     messageHandler(event)
+
     expect(eventsEmitter.emit).toHaveBeenCalledWith('blur', {
       field: 'card-number',
       parentNode: expect.any(Element),
     })
+
     expect(parentNode.classList.contains(CSSClasses.Focused)).toBe(false)
   })
 })
