@@ -87,7 +87,7 @@ describe('listener', () => {
     },
   )
 
-  /*test('should ignore messages from incorrect origins', () => {
+  test('should ignore messages from incorrect origins', () => {
     listener()
 
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
@@ -97,7 +97,7 @@ describe('listener', () => {
     messageHandler(event)
 
     expect(document.querySelector).not.toHaveBeenCalled()
-  })*/
+  })
 
   test.each`
     url                         | debug    | sandbox
