@@ -7,7 +7,13 @@ import {
   handleRemoveIframe,
   handleCreateMessageEventMock,
   configurationsSDK,
+  configSDKEachEnvironment,
 } from 'tests/mocks'
+import {
+  URL_HOSTED_FIELD_DEV,
+  URL_HOSTED_FIELD_PROD,
+  URL_HOSTED_FIELD_SANDBOX,
+} from 'src/constants'
 
 describe('tokenize', () => {
   let iframe: HTMLIFrameElement
@@ -18,6 +24,7 @@ describe('tokenize', () => {
       postMessage: vi.fn(),
       addEventListener: vi.fn(),
     } as unknown as Window
+
     iframe = handleSetupIframeInDOM('card-number', contentWindowMock)
   })
 
@@ -26,122 +33,116 @@ describe('tokenize', () => {
     handleRemoveIframe(iframe)
   })
 
-  test('should resolve with token data on successful message', async () => {
-    const tokenize = new Tokenize(configurationsSDK)
-    const promise = tokenize.handle()
+  test.each`
+    url                         | debug    | sandbox
+    ${URL_HOSTED_FIELD_DEV}     | ${true}  | ${false}
+    ${URL_HOSTED_FIELD_SANDBOX} | ${false} | ${true}
+    ${URL_HOSTED_FIELD_PROD}    | ${false} | ${false}
+  `(
+    'should resolve with token data on successful message',
+    async ({ url, debug, sandbox }) => {
+      const tokenize = new Tokenize(configSDKEachEnvironment(debug, sandbox))
+      const promise = tokenize.handle()
 
-    const messageEvent = handleCreateMessageEventMock(
-      Event.Tokenize,
-      '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
-      'https://hosted-fields.malga.io',
-    )
+      const messageEvent = handleCreateMessageEventMock(
+        Event.Tokenize,
+        url,
+        '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+      )
 
-    global.dispatchEvent(messageEvent)
+      global.dispatchEvent(messageEvent)
 
-    const response = await promise
+      const response = await promise
 
-    expect(response).toEqual({
-      tokenId: '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
-    })
+      expect(response).toEqual({
+        tokenId: '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+      })
 
-    expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
-  })
+      expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
+    },
+  )
 
-  test('should handle error for undefined data', async () => {
-    const tokenize = new Tokenize(configurationsSDK)
+  test.each`
+    url                         | debug    | sandbox
+    ${URL_HOSTED_FIELD_DEV}     | ${true}  | ${false}
+    ${URL_HOSTED_FIELD_SANDBOX} | ${false} | ${true}
+    ${URL_HOSTED_FIELD_PROD}    | ${false} | ${false}
+  `(
+    'should handle error for undefined data',
+    async ({ url, debug, sandbox }) => {
+      const tokenize = new Tokenize(configSDKEachEnvironment(debug, sandbox))
 
-    const promise = tokenize.handle()
+      const promise = tokenize.handle()
 
-    const messageEvent = handleCreateMessageEventMock(
-      Event.Tokenize,
-      undefined,
-      'https://hosted-fields.malga.io',
-    )
+      const messageEvent = handleCreateMessageEventMock(
+        Event.Tokenize,
+        url,
+        undefined,
+      )
 
-    global.dispatchEvent(messageEvent)
+      global.dispatchEvent(messageEvent)
 
-    const response = await promise
-    expect(response).toEqual({
-      tokenId: undefined,
-    })
+      const response = await promise
+      expect(response).toEqual({
+        tokenId: undefined,
+      })
 
-    expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
-  })
+      expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
+    },
+  )
 
-  test('should ignore messages from different origins', async () => {
-    const tokenize = new Tokenize(configurationsSDK)
+  test.each`
+    debug    | sandbox
+    ${true}  | ${false}
+    ${false} | ${true}
+    ${false} | ${false}
+  `(
+    'should ignore messages from different origins',
+    async ({ debug, sandbox }) => {
+      const tokenize = new Tokenize(configSDKEachEnvironment(debug, sandbox))
 
-    const consoleErrorSpy = vi
-      .spyOn(console, 'error')
-      .mockImplementation(() => {})
+      const consoleErrorSpy = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {})
 
-    tokenize.handle()
+      tokenize.handle()
 
-    const messageEvent = handleCreateMessageEventMock(
-      Event.Tokenize,
-      '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
-      'https://wrong-origin.com',
-    )
+      const messageEvent = handleCreateMessageEventMock(
+        Event.Tokenize,
+        'https://wrong-origin.com',
+        '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+      )
 
-    global.dispatchEvent(messageEvent)
+      global.dispatchEvent(messageEvent)
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      `Unauthorized origin: https://wrong-origin.com, origin should be https://hosted-fields.malga.io`,
-    )
-    expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        `Unauthorized origin: https://wrong-origin.com, origin should be https://hosted-fields.malga.io`,
+      )
 
-    consoleErrorSpy.mockRestore()
-  })
+      expect(contentWindowMock.postMessage).toHaveBeenCalledTimes(1)
+      consoleErrorSpy.mockRestore()
+    },
+  )
 
-  test('should call submit with debug configurations', () => {
-    const submitSpy = vi.spyOn(iframesModule, 'submit')
+  test.each`
+    debug    | sandbox
+    ${true}  | ${false}
+    ${false} | ${true}
+    ${false} | ${false}
+  `(
+    'should call submit with any environment configurations (debug, sandbox, prod)',
+    ({ debug, sandbox }) => {
+      const submitSpy = vi.spyOn(iframesModule, 'submit')
 
-    const configurationsSDKWithDebugEnvironment = {
-      ...configurationsSDK,
-      options: {
-        ...configurationsSDK.options,
-        debug: true,
-      },
-    }
+      new Tokenize(configSDKEachEnvironment(debug, sandbox)).handle()
 
-    new Tokenize(configurationsSDKWithDebugEnvironment).handle()
+      expect(submitSpy).toHaveBeenCalledWith(
+        configSDKEachEnvironment(debug, sandbox),
+      )
 
-    expect(submitSpy).toHaveBeenCalledWith(
-      configurationsSDKWithDebugEnvironment,
-    )
-
-    submitSpy.mockRestore()
-  })
-
-  test('should call submit with sandbox configurations', () => {
-    const submitSpy = vi.spyOn(iframesModule, 'submit')
-
-    const configurationsSDKWithDebugEnvironment = {
-      ...configurationsSDK,
-      options: {
-        ...configurationsSDK.options,
-        sandbox: true,
-      },
-    }
-
-    new Tokenize(configurationsSDKWithDebugEnvironment).handle()
-
-    expect(submitSpy).toHaveBeenCalledWith(
-      configurationsSDKWithDebugEnvironment,
-    )
-
-    submitSpy.mockRestore()
-  })
-
-  test('should call submit with production configurations', () => {
-    const submitSpy = vi.spyOn(iframesModule, 'submit')
-
-    new Tokenize(configurationsSDK).handle()
-
-    expect(submitSpy).toHaveBeenCalledWith(configurationsSDK)
-
-    submitSpy.mockRestore()
-  })
+      submitSpy.mockRestore()
+    },
+  )
 
   test('should show error when iframeCardNumber is not found', () => {
     const querySelectorSpy = vi.spyOn(document, 'querySelector')

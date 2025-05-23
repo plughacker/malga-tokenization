@@ -1,6 +1,6 @@
-export function handleCreateMockEvent(eventType: string, origin?: string) {
+export function handleCreateMockEvent(eventType: string, origin: string) {
   const eventMocked = {
-    origin: origin ?? 'https://hosted-fields.dev.malga.io',
+    origin: origin,
     data: {
       eventType: eventType,
       data: {
@@ -14,10 +14,10 @@ export function handleCreateMockEvent(eventType: string, origin?: string) {
 
 export function handleCreateMockValidityEvent(
   eventType: string,
-  origin?: string,
+  origin: string,
 ) {
   const eventMocked = {
-    origin: origin ?? 'https://hosted-fields.dev.malga.io',
+    origin: origin,
     data: {
       eventType: eventType,
       data: {
@@ -34,11 +34,11 @@ export function handleCreateMockValidityEvent(
 
 export function handleCreateMessageEventMock(
   eventType: string,
+  origin: string,
   tokenId?: string,
-  origin?: string,
 ) {
   const messageEvent = new MessageEvent('message', {
-    origin: origin ?? 'https://hosted-fields.dev.malga.io',
+    origin: origin,
     data: {
       eventType: eventType,
       data: {
