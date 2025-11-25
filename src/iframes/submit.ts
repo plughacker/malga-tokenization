@@ -4,8 +4,9 @@ import { EventPostMessage } from 'src/events'
 import { gettingOriginEvent } from 'src/utils'
 
 export function submit(configurations: MalgaConfigurations) {
+  const container = configurations.options.config.fields.cardNumber.container
   const iframeCardNumber = document.querySelector(
-    'iframe[name=card-number]',
+    `iframe[name=${container}]`,
   ) as HTMLIFrameElement
 
   if (!iframeCardNumber || !iframeCardNumber.contentWindow) {
@@ -20,8 +21,9 @@ export function submit(configurations: MalgaConfigurations) {
     configurations.options.sandbox,
   )
 
+  const storageKey = `malga-card-${container}`
   const getSessionStorageCard = JSON.parse(
-    sessionStorage.getItem('malga-card') || '{}',
+    sessionStorage.getItem(storageKey) || '{}',
   )
 
   const iframePostMessage = new EventPostMessage(

@@ -47,21 +47,23 @@ function handleEventUpdateCardValues(data: {
   value: string
   storageKey?: string
 }) {
-  const currentCardData = JSON.parse(
-    sessionStorage.getItem('malga-card') || '{}',
-  )
+  const suffix = data.field.match(/-(\d+)$/)?.[1] ?? ''
+  const containerBase = suffix ? `card-number-${suffix}` : 'card-number'
+  const storageKey = `malga-card-${containerBase}`
+
+  const currentCardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
 
   const camelCaseField = data.field
     .replace(/[^a-z-]/gi, '')
-    .replace(/-([a-z])/g, (g: string) => g[1].toUpperCase())
+    .replace(/-([a-z])/g, (_, char) => char.toUpperCase())
     .replace(/-/g, '')
 
-  const updatedCardData = {
+  const updatedData = {
     ...currentCardData,
     [camelCaseField]: data.value,
   }
 
-  sessionStorage.setItem('malga-card', JSON.stringify(updatedCardData))
+  sessionStorage.setItem(storageKey, JSON.stringify(updatedData))
 }
 
 const eventHandlers: { [key: string]: EventHandler<any> } = {

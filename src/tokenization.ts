@@ -20,7 +20,9 @@ export class MalgaTokenization {
       )
     }
 
-    sessionStorage.removeItem('malga-card')
+    sessionStorage.removeItem(
+      `malga-card-${configurations.options.config.fields.cardNumber.container}`,
+    )
 
     this.configurations = configurations
 
