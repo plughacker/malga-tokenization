@@ -47,28 +47,21 @@ function handleEventUpdateCardValues(data: {
   value: string
   storageKey?: string
 }) {
-  // Usa a chave específica se fornecida, senão usa a padrão
-  const storageKey = data.storageKey
-    ? `malga-card-${data.storageKey}`
-    : 'malga-card'
-
-  const currentCardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
-
-  console.log('currentCardData', currentCardData, 'storageKey', storageKey)
+  const currentCardData = JSON.parse(
+    sessionStorage.getItem('malga-card') || '{}',
+  )
 
   const camelCaseField = data.field
     .replace(/[^a-z-]/gi, '')
     .replace(/-([a-z])/g, (g: string) => g[1].toUpperCase())
     .replace(/-/g, '')
 
-  console.log('camelCaseField', camelCaseField)
-
   const updatedCardData = {
     ...currentCardData,
     [camelCaseField]: data.value,
   }
 
-  sessionStorage.setItem(storageKey, JSON.stringify(updatedCardData))
+  sessionStorage.setItem('malga-card', JSON.stringify(updatedCardData))
 }
 
 const eventHandlers: { [key: string]: EventHandler<any> } = {
