@@ -21,6 +21,7 @@ function validateConfig(config: MalgaInputFieldConfigurations): boolean {
 }
 
 function onLoadIframeField(
+  field: any,
   iframe: HTMLIFrameElement,
   fieldConfig: MalgaInputFieldConfiguration,
   options: MalgaOptions,
@@ -33,7 +34,8 @@ function onLoadIframeField(
   iframe.contentWindow.postMessage(
     {
       type: Event.SetTypeField,
-      field: fieldConfig.container,
+      fieldType: field,
+      container: fieldConfig.container,
       fieldConfig: fieldConfig,
       styles: options.config?.styles,
       preventAutofill: options.config?.preventAutofill,
@@ -61,6 +63,6 @@ export function loaded(options: MalgaOptions) {
       return
     }
 
-    iframe.onload = () => onLoadIframeField(iframe, fieldConfig, options)
+    iframe.onload = () => onLoadIframeField(field, iframe, fieldConfig, options)
   })
 }
