@@ -45,11 +45,9 @@ function handleEventBlur(data: { field: string }, parentNode: Element) {
 function handleEventUpdateCardValues(data: {
   field: string
   value: string
-  storageKey?: string
+  cardNumberContainer?: string
 }) {
-  const suffix = data.field.match(/-(\d+)$/)?.[1] ?? ''
-  const containerBase = suffix ? `card-number-${suffix}` : 'card-number'
-  const storageKey = `malga-card-${containerBase}`
+  const storageKey = `malga-card-${data.cardNumberContainer || data.field}`
 
   const currentCardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
 

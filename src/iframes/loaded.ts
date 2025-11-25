@@ -36,6 +36,7 @@ function onLoadIframeField(
       type: Event.SetTypeField,
       fieldType: field,
       container: fieldConfig.container,
+      cardNumberContainer: options.config.fields.cardNumber.container,
       fieldConfig: fieldConfig,
       styles: options.config?.styles,
       preventAutofill: options.config?.preventAutofill,

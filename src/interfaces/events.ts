@@ -55,6 +55,7 @@ export interface MalgaEventDataFocusBlurReturn {
 export interface MalgaEventDataUpdateCardValuesReturn {
   field: string
   value: string
+  cardNumberContainer?: string
   debug?: boolean
   sandbox?: boolean
 }
