@@ -28,8 +28,6 @@ export function submit(
     const storageKey = `malga-card-${container}`
     const cardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
 
-    console.log('cardData', cardData)
-
     const iframePostMessage = new EventPostMessage(
       iframeCardNumber.contentWindow!,
       origin,

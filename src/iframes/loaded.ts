@@ -32,6 +32,12 @@ function onLoadIframeField(
     return
   }
 
+  console.log('[TOKENIZATION] onLoadIframeField:', {
+    field,
+    container: fieldConfig.container,
+    cardNumberContainer,
+  })
+
   iframe.contentWindow.postMessage(
     {
       type: Event.SetTypeField,

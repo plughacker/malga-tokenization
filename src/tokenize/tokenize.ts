@@ -33,24 +33,42 @@ export class Tokenize {
       'cardExpirationDate',
     ]
 
+    console.log('[TOKENIZATION] getFilledCards called')
+    console.log('[TOKENIZATION] All sessionStorage keys:', Object.keys(sessionStorage))
+    
+    // Log all malga-card keys
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('malga-card')) {
+        console.log(`[TOKENIZATION] sessionStorage[${key}]:`, sessionStorage.getItem(key))
+      }
+    })
+
     return this.configurations.options.config.fields.filter((field) => {
       const container = field.cardNumber.container
       const storageKey = `malga-card-${container}`
       const cardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
 
-      const isFilled = requiredFields.every((fieldName) => {
+      console.log(`[TOKENIZATION] Checking card: ${container}`)
+      console.log(`[TOKENIZATION] storageKey: ${storageKey}`)
+      console.log(`[TOKENIZATION] cardData:`, cardData)
+
+      const fieldChecks = requiredFields.map((fieldName) => {
         const value = cardData[fieldName]
-        return (
+        const isValid = 
           value !== undefined &&
           value !== null &&
           typeof value === 'string' &&
           value.trim().length > 0
-        )
+        
+        console.log(`[TOKENIZATION] Field ${fieldName}: value=${value ? 'EXISTS' : 'MISSING'}, isValid=${isValid}`)
+        return isValid
       })
 
-      if (!isFilled) {
-        sessionStorage.removeItem(storageKey)
-      }
+      const isFilled = fieldChecks.every(Boolean)
+      console.log(`[TOKENIZATION] Card ${container} isFilled: ${isFilled}`)
+
+      // NÃO remover os dados do sessionStorage aqui!
+      // Os dados devem ser preservados para que o usuário possa completar o preenchimento
 
       return isFilled
     })
@@ -64,7 +82,6 @@ export class Tokenize {
     const filledCards = this.getFilledCards()
 
     if (filledCards.length === 0) {
-      console.log('porque não entra aqui?')
       throw new Error(
         'Nenhum cartão está preenchido. Preencha pelo menos um cartão.',
       )
@@ -90,12 +107,10 @@ export class Tokenize {
             results.push(event.data.data)
 
             if (results.length === filledCards.length) {
-              console.log('results', results)
               resolve(results)
               window.removeEventListener('message', messageHandler)
             }
           } catch (error) {
-            console.log('sai aqui?')
             console.error('Error processing tokenize event:', error)
             reject(error)
             window.removeEventListener('message', messageHandler)
