@@ -20,9 +20,9 @@ export class MalgaTokenization {
       )
     }
 
-    sessionStorage.removeItem(
-      `malga-card-${configurations.options.config.fields.cardNumber.container}`,
-    )
+    configurations.options.config.fields.map((field) => {
+      sessionStorage.removeItem(`malga-card-${field.cardNumber.container}`)
+    })
 
     this.configurations = configurations
 
@@ -30,7 +30,7 @@ export class MalgaTokenization {
     listener(configurations.options.debug, configurations.options.sandbox)
   }
 
-  public async tokenize() {
+  public async tokenize(): Promise<any[]> {
     const tokenize = new Tokenize(this.configurations)
     return tokenize.handle()
   }

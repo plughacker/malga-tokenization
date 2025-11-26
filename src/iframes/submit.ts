@@ -1,43 +1,46 @@
-import type { MalgaConfigurations } from 'src/interfaces'
+import type { MalgaConfigurations, MalgaFieldsGroup } from 'src/interfaces'
 import { Event } from 'src/enums'
 import { EventPostMessage } from 'src/events'
 import { gettingOriginEvent } from 'src/utils'
 
-export function submit(configurations: MalgaConfigurations) {
-  const container = configurations.options.config.fields.cardNumber.container
-  const iframeCardNumber = document.querySelector(
-    `iframe[name=${container}]`,
-  ) as HTMLIFrameElement
-
-  if (!iframeCardNumber || !iframeCardNumber.contentWindow) {
-    console.error(
-      'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
-    )
-    return
-  }
-
+export function submit(
+  configurations: MalgaConfigurations,
+  fieldsToSubmit: MalgaFieldsGroup[],
+) {
   const origin = gettingOriginEvent(
     configurations.options.debug,
     configurations.options.sandbox,
   )
 
-  const storageKey = `malga-card-${container}`
-  const getSessionStorageCard = JSON.parse(
-    sessionStorage.getItem(storageKey) || '{}',
-  )
+  fieldsToSubmit.forEach((field) => {
+    const container = field.cardNumber.container
+    const iframeCardNumber = document.querySelector(
+      `iframe[name=${container}]`,
+    ) as HTMLIFrameElement
 
-  const iframePostMessage = new EventPostMessage(
-    iframeCardNumber.contentWindow!,
-    origin,
-  )
+    if (!iframeCardNumber?.contentWindow) {
+      console.error(
+        'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
+      )
+      return
+    }
 
-  iframePostMessage.send(Event.Submit, {
-    authorizationData: {
-      clientId: configurations.clientId,
-      apiKey: configurations.apiKey,
-    },
-    sandbox: configurations.options?.sandbox,
-    debug: configurations.options.debug,
-    card: getSessionStorageCard,
+    const storageKey = `malga-card-${container}`
+    const cardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
+
+    const iframePostMessage = new EventPostMessage(
+      iframeCardNumber.contentWindow!,
+      origin,
+    )
+
+    iframePostMessage.send(Event.Submit, {
+      authorizationData: {
+        clientId: configurations.clientId,
+        apiKey: configurations.apiKey,
+      },
+      sandbox: configurations.options?.sandbox,
+      debug: configurations.options.debug,
+      card: cardData,
+    })
   })
 }
