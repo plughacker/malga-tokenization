@@ -6,13 +6,15 @@ export interface MalgaInputFieldConfiguration {
   defaultValidation?: boolean
 }
 
+export interface MalgaFieldsGroup {
+  cardNumber: MalgaInputFieldConfiguration
+  cardHolderName: MalgaInputFieldConfiguration
+  cardCvv: MalgaInputFieldConfiguration
+  cardExpirationDate: MalgaInputFieldConfiguration
+}
+
 export interface MalgaInputFieldConfigurations {
-  fields: {
-    cardNumber: MalgaInputFieldConfiguration
-    cardHolderName: MalgaInputFieldConfiguration
-    cardCvv: MalgaInputFieldConfiguration
-    cardExpirationDate: MalgaInputFieldConfiguration
-  }
+  fields: MalgaFieldsGroup[]
   styles?: any
   preventAutofill?: boolean
 }
