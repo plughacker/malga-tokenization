@@ -30,15 +30,13 @@ type MalgaErrorDeclinedCode =
   | 'transaction_not_allowed'
   | 'try_again'
 
-export interface MalgaErrorResponse {
-  error: {
+  export interface MalgaErrorResponse {
     type: MalgaErrorType
     code: number
     message: string
     details?: string | string[]
     declinedCode?: MalgaErrorDeclinedCode
   }
-}
 
 export interface MalgaPayloadResponse {
   tokenId: string
