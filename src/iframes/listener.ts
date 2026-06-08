@@ -2,7 +2,6 @@ import { CSSClasses, EventEmits, Event } from 'src/enums'
 import { EventListener, handGetValidationEventData } from 'src/events'
 import type {
   MalgaEventDataValidityReturn,
-  MalgaCreditCardFields,
   EventHandler,
   MalgaEventDataCardTypeChangePayloadReturn,
 } from 'src/interfaces'
@@ -27,10 +26,7 @@ function handleEventCardTypeChanged(
   })
 }
 
-function handleEventFocus(
-  data: { field: MalgaCreditCardFields },
-  parentNode: Element,
-) {
+function handleEventFocus(data: { field: string }, parentNode: Element) {
   parentNode.classList.add(CSSClasses.Focused)
   eventsEmitter.emit(EventEmits.Focus, {
     field: data.field,
@@ -38,10 +34,7 @@ function handleEventFocus(
   })
 }
 
-function handleEventBlur(
-  data: { field: MalgaCreditCardFields },
-  parentNode: Element,
-) {
+function handleEventBlur(data: { field: string }, parentNode: Element) {
   parentNode.classList.remove(CSSClasses.Focused)
   eventsEmitter.emit(EventEmits.Blur, {
     field: data.field,
@@ -50,23 +43,25 @@ function handleEventBlur(
 }
 
 function handleEventUpdateCardValues(data: {
-  field: MalgaCreditCardFields
+  field: string
   value: string
+  cardNumberContainer?: string
 }) {
-  const currentCardData = JSON.parse(
-    sessionStorage.getItem('malga-card') || '{}',
-  )
+  const storageKey = `malga-card-${data.cardNumberContainer || data.field}`
 
-  const camelCaseField = data.field.replace(/-([a-z])/g, (g: string) =>
-    g[1].toUpperCase(),
-  )
+  const currentCardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
 
-  const updatedCardData = {
+  const camelCaseField = data.field
+    .replace(/[^a-z-]/gi, '')
+    .replace(/-([a-z])/g, (_, char) => char.toUpperCase())
+    .replace(/-/g, '')
+
+  const updatedData = {
     ...currentCardData,
     [camelCaseField]: data.value,
   }
 
-  sessionStorage.setItem('malga-card', JSON.stringify(updatedCardData))
+  sessionStorage.setItem(storageKey, JSON.stringify(updatedData))
 }
 
 const eventHandlers: { [key: string]: EventHandler<any> } = {
