@@ -2,7 +2,7 @@ import { CSSClasses } from 'src/enums'
 import { create } from './create'
 import { camelToKebabCase } from '../utils/parsedString'
 import { configurationsSDK } from 'tests/mocks'
-import { URL_HOSTED_FIELD_PROD } from 'src/constants'
+import { HOSTED_FIELDS_VERSION, URL_HOSTED_FIELD_PROD } from 'src/constants'
 
 describe('create', () => {
   function testCreatingIframe(field: string) {
@@ -17,7 +17,11 @@ describe('create', () => {
       const iframe = document.querySelector(`iframe[name=${type}]`)
 
       expect(iframe).toBeInTheDocument()
-      expect(iframe).toHaveAttribute('src', URL_HOSTED_FIELD_PROD)
+      // o iframe carrega do caminho da versão; a validação de origem usa a origem pura
+      expect(iframe).toHaveAttribute(
+        'src',
+        `${URL_HOSTED_FIELD_PROD}/${HOSTED_FIELDS_VERSION}`,
+      )
       expect(iframe).toHaveAttribute('name', type)
       expect(parentNode.classList.contains(CSSClasses.Default)).toBe(true)
       expect(parentNode.getAttribute('id')).toBe(type)
