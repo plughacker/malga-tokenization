@@ -3,7 +3,10 @@ import { Event } from 'src/enums'
 import { EventPostMessage } from 'src/events'
 import { gettingOriginEvent } from 'src/utils'
 
-export function submit(configurations: MalgaConfigurations) {
+export function submit(
+  configurations: MalgaConfigurations,
+  requestId?: string,
+) {
   const iframeCardNumber = document.querySelector(
     'iframe[name=card-number]',
   ) as HTMLIFrameElement
@@ -29,6 +32,10 @@ export function submit(configurations: MalgaConfigurations) {
     origin,
   )
 
+  // O campo só entra no payload quando existe, para que a submissão continue
+  // idêntica à atual para quem chama `submit` sem correlação.
+  const correlation = requestId ? { requestId } : {}
+
   iframePostMessage.send(Event.Submit, {
     authorizationData: {
       clientId: configurations.clientId,
@@ -37,5 +44,6 @@ export function submit(configurations: MalgaConfigurations) {
     sandbox: configurations.options?.sandbox,
     debug: configurations.options.debug,
     card: getSessionStorageCard,
+    ...correlation,
   })
 }

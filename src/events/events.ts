@@ -21,6 +21,10 @@ export class EventListener {
   listener(eventType: EventTypeListener, eventHandler: (event: any) => void) {
     this.action.addEventListener(eventType, eventHandler)
   }
+
+  remove(eventType: EventTypeListener, eventHandler: (event: any) => void) {
+    this.action.removeEventListener(eventType, eventHandler)
+  }
 }
 
 export class Events {
