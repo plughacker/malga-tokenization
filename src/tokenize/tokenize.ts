@@ -26,12 +26,18 @@ export class Tokenize {
       throw new Error('Configurations are required')
     }
 
-    submit(this.configurations)
+    const iframeWindow = submit(this.configurations)
+
+    if (!iframeWindow) {
+      throw new Error('Card number iframe not found, cannot tokenize')
+    }
 
     const windowData = new EventListener(window)
 
     return new Promise((resolve, reject) => {
       const messageHandler = (event: MessageEvent<MalgaResponse>) => {
+        if (event.source !== iframeWindow) return
+
         if (!this.isValidOrigin(event.origin)) {
           console.error(
             `Unauthorized origin: ${event.origin}, origin should be ${gettingOriginEvent()}`,

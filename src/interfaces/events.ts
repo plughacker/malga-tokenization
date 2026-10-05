@@ -1,4 +1,5 @@
 import type { Event } from 'src/enums'
+import type { Events } from 'src/events'
 
 export type EventTypeReturn =
   | 'validity'
@@ -11,8 +12,7 @@ export type EventTypeListener = 'message'
 export type EventHandler<T> = (
   data: T,
   parentNode: Element,
-  debug?: boolean,
-  sandbox?: boolean,
+  events: Events,
 ) => void
 
 interface CreditCardReturn {

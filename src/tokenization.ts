@@ -8,10 +8,9 @@ import { Tokenize } from './tokenize'
 import { Events } from './events'
 import { listener, loaded } from './iframes'
 
-export const eventsEmitter = new Events()
-
 export class MalgaTokenization {
   private readonly configurations: MalgaConfigurations
+  private readonly events = new Events()
 
   constructor(configurations: MalgaConfigurations) {
     if (!configurations.apiKey || !configurations.clientId) {
@@ -27,7 +26,7 @@ export class MalgaTokenization {
     this.configurations = configurations
 
     loaded(configurations.options)
-    listener(configurations.options.debug, configurations.options.sandbox)
+    listener(configurations.options, this.events)
   }
 
   public async tokenize() {
@@ -53,9 +52,6 @@ export class MalgaTokenization {
     eventType: T,
     eventHandler: (data: EventPayloadReturnObject[T]) => void,
   ) {
-    return eventsEmitter.on(eventType, eventHandler)
+    return this.events.on(eventType, eventHandler)
   }
-  // public on(eventType: EventTypeReturn, eventHandler: (event: any) => void) {
-  //   return eventsEmitter.on(eventType, eventHandler)
-  // }
 }

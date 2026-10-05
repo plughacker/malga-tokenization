@@ -48,6 +48,7 @@ describe('tokenize', () => {
         Event.Tokenize,
         url,
         '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+        contentWindowMock,
       )
 
       global.dispatchEvent(messageEvent)
@@ -78,6 +79,7 @@ describe('tokenize', () => {
         Event.Tokenize,
         url,
         undefined,
+        contentWindowMock,
       )
 
       global.dispatchEvent(messageEvent)
@@ -111,6 +113,7 @@ describe('tokenize', () => {
         Event.Tokenize,
         'https://wrong-origin.com',
         '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+        contentWindowMock,
       )
 
       global.dispatchEvent(messageEvent)
@@ -159,5 +162,38 @@ describe('tokenize', () => {
 
     querySelectorSpy.mockRestore()
     consoleErrorSpy.mockRestore()
+  })
+
+  test('should ignore tokenize messages coming from another iframe', async () => {
+    const tokenize = new Tokenize(configSDKEachEnvironment(false, false))
+    const promise = tokenize.handle()
+    const otherWindow = { postMessage: vi.fn() }
+
+    global.dispatchEvent(
+      handleCreateMessageEventMock(
+        Event.Tokenize,
+        URL_HOSTED_FIELD_PROD,
+        'token-from-other-instance',
+        otherWindow,
+      ),
+    )
+    global.dispatchEvent(
+      handleCreateMessageEventMock(
+        Event.Tokenize,
+        URL_HOSTED_FIELD_PROD,
+        'token-from-this-instance',
+        contentWindowMock,
+      ),
+    )
+
+    expect(await promise).toEqual({ tokenId: 'token-from-this-instance' })
+  })
+
+  test('should reject when the card number iframe is not found', async () => {
+    handleRemoveIframe(iframe)
+
+    await expect(
+      new Tokenize(configSDKEachEnvironment(false, false)).handle(),
+    ).rejects.toThrow('Card number iframe not found, cannot tokenize')
   })
 })

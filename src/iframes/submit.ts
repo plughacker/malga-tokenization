@@ -3,7 +3,9 @@ import { Event } from 'src/enums'
 import { EventPostMessage } from 'src/events'
 import { gettingOriginEvent } from 'src/utils'
 
-export function submit(configurations: MalgaConfigurations) {
+export function submit(
+  configurations: MalgaConfigurations,
+): Window | undefined {
   const container = configurations.options.config.fields.cardNumber.container
   const iframeCardNumber = document.querySelector(
     `iframe[name=${container}]`,
@@ -13,7 +15,7 @@ export function submit(configurations: MalgaConfigurations) {
     console.error(
       'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
     )
-    return
+    return undefined
   }
 
   const origin = gettingOriginEvent(
@@ -40,4 +42,6 @@ export function submit(configurations: MalgaConfigurations) {
     debug: configurations.options.debug,
     card: getSessionStorageCard,
   })
+
+  return iframeCardNumber.contentWindow
 }
