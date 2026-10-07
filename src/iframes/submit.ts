@@ -5,6 +5,7 @@ import { gettingOriginEvent } from 'src/utils'
 
 export function submit(
   configurations: MalgaConfigurations,
+  requestId?: string,
 ): Window | undefined {
   const container = configurations.options.config.fields.cardNumber.container
   const iframeCardNumber = document.querySelector(
@@ -41,6 +42,7 @@ export function submit(
     sandbox: configurations.options?.sandbox,
     debug: configurations.options.debug,
     card: getSessionStorageCard,
+    requestId,
   })
 
   return iframeCardNumber.contentWindow

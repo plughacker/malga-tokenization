@@ -30,7 +30,7 @@ export class MalgaTokenization {
   }
 
   public async tokenize() {
-    const tokenize = new Tokenize(this.configurations)
+    const tokenize = new Tokenize(this.configurations, this.events)
     return tokenize.handle()
   }
 
@@ -44,8 +44,9 @@ export class MalgaTokenization {
    * - 'cardTypeChanged': Triggered when the card type is detected or changed.
    * - 'focus': Triggered when a input field receives focus.
    * - 'blur': Triggered when a input field loses focus.
+   * - 'loading': Triggered when a tokenization starts and finishes ({ isLoading }).
    * @param eventHandler - The event handler function.
-   * @returns {void}
+   * @returns A function that removes the registered event handler.
    */
 
   public on<T extends EventTypeReturn>(

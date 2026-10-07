@@ -105,6 +105,10 @@ malgaTokenization.on('focus', (event) => {
   console.log('blur', event)
 })
 
+malgaTokenization.on('loading', ({ isLoading }) => {
+  submitButton.disabled = isLoading
+})
+
 async function handleSubmit(event) {
   event.preventDefault()
 

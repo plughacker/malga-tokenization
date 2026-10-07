@@ -1,4 +1,5 @@
 import { Event } from 'src/enums'
+import type { Events } from 'src/events'
 import { submit } from 'src/iframes'
 import { Tokenize } from './../tokenize/tokenize'
 import * as iframesModule from 'src/iframes'
@@ -18,8 +19,10 @@ import {
 describe('tokenize', () => {
   let iframe: HTMLIFrameElement
   let contentWindowMock: Window
+  let events: Events
 
   beforeEach(() => {
+    events = { emit: vi.fn() } as unknown as Events
     contentWindowMock = {
       postMessage: vi.fn(),
       addEventListener: vi.fn(),
@@ -41,7 +44,10 @@ describe('tokenize', () => {
   `(
     'should resolve with token data on successful message',
     async ({ url, debug, sandbox }) => {
-      const tokenize = new Tokenize(configSDKEachEnvironment(debug, sandbox))
+      const tokenize = new Tokenize(
+        configSDKEachEnvironment(debug, sandbox),
+        events,
+      )
       const promise = tokenize.handle()
 
       const messageEvent = handleCreateMessageEventMock(
@@ -71,7 +77,10 @@ describe('tokenize', () => {
   `(
     'should handle error for undefined data',
     async ({ url, debug, sandbox }) => {
-      const tokenize = new Tokenize(configSDKEachEnvironment(debug, sandbox))
+      const tokenize = new Tokenize(
+        configSDKEachEnvironment(debug, sandbox),
+        events,
+      )
 
       const promise = tokenize.handle()
 
@@ -101,7 +110,10 @@ describe('tokenize', () => {
   `(
     'should ignore messages from different origins',
     async ({ debug, sandbox }) => {
-      const tokenize = new Tokenize(configSDKEachEnvironment(debug, sandbox))
+      const tokenize = new Tokenize(
+        configSDKEachEnvironment(debug, sandbox),
+        events,
+      )
 
       const consoleErrorSpy = vi
         .spyOn(console, 'error')
@@ -137,10 +149,11 @@ describe('tokenize', () => {
     ({ debug, sandbox }) => {
       const submitSpy = vi.spyOn(iframesModule, 'submit')
 
-      new Tokenize(configSDKEachEnvironment(debug, sandbox)).handle()
+      new Tokenize(configSDKEachEnvironment(debug, sandbox), events).handle()
 
       expect(submitSpy).toHaveBeenCalledWith(
         configSDKEachEnvironment(debug, sandbox),
+        expect.any(String),
       )
 
       submitSpy.mockRestore()
@@ -165,7 +178,10 @@ describe('tokenize', () => {
   })
 
   test('should ignore tokenize messages coming from another iframe', async () => {
-    const tokenize = new Tokenize(configSDKEachEnvironment(false, false))
+    const tokenize = new Tokenize(
+      configSDKEachEnvironment(false, false),
+      events,
+    )
     const promise = tokenize.handle()
     const otherWindow = { postMessage: vi.fn() }
 
@@ -189,11 +205,91 @@ describe('tokenize', () => {
     expect(await promise).toEqual({ tokenId: 'token-from-this-instance' })
   })
 
+  test('should emit loading while tokenizing', async () => {
+    const promise = new Tokenize(
+      configSDKEachEnvironment(false, false),
+      events,
+    ).handle()
+
+    expect(events.emit).toHaveBeenCalledTimes(1)
+    expect(events.emit).toHaveBeenCalledWith(Event.Loading, { isLoading: true })
+
+    global.dispatchEvent(
+      handleCreateMessageEventMock(
+        Event.Tokenize,
+        URL_HOSTED_FIELD_PROD,
+        '623e25e1-9c40-442e-beaa-a9d7b735bdc1',
+        contentWindowMock,
+      ),
+    )
+    await promise
+
+    expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+      isLoading: false,
+    })
+  })
+
+  test('should not emit loading when the card number iframe is not found', async () => {
+    handleRemoveIframe(iframe)
+
+    await expect(
+      new Tokenize(configSDKEachEnvironment(false, false), events).handle(),
+    ).rejects.toThrow()
+
+    expect(events.emit).not.toHaveBeenCalled()
+  })
+
+  test('should resolve each call with the response of its own request', async () => {
+    const config = configSDKEachEnvironment(false, false)
+    const first = new Tokenize(config, events).handle()
+    const second = new Tokenize(config, events).handle()
+
+    const postMessage = vi.mocked(contentWindowMock.postMessage)
+    const [firstRequestId, secondRequestId] = postMessage.mock.calls.map(
+      ([message]) => message.data.requestId,
+    )
+
+    expect(firstRequestId).not.toBe(secondRequestId)
+
+    global.dispatchEvent(
+      handleCreateMessageEventMock(
+        Event.Tokenize,
+        URL_HOSTED_FIELD_PROD,
+        'token-second',
+        contentWindowMock,
+        secondRequestId,
+      ),
+    )
+    global.dispatchEvent(
+      handleCreateMessageEventMock(
+        Event.Tokenize,
+        URL_HOSTED_FIELD_PROD,
+        'token-first',
+        contentWindowMock,
+        firstRequestId,
+      ),
+    )
+
+    expect(await first).toEqual({ tokenId: 'token-first' })
+    expect(await second).toEqual({ tokenId: 'token-second' })
+  })
+
+  test('should send the requestId in the submit message', () => {
+    new Tokenize(configSDKEachEnvironment(false, false), events).handle()
+
+    expect(contentWindowMock.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ requestId: expect.any(String) }),
+      }),
+      URL_HOSTED_FIELD_PROD,
+    )
+  })
+
   test('should reject when the card number iframe is not found', async () => {
     handleRemoveIframe(iframe)
 
     await expect(
-      new Tokenize(configSDKEachEnvironment(false, false)).handle(),
+      new Tokenize(configSDKEachEnvironment(false, false), events).handle(),
     ).rejects.toThrow('Card number iframe not found, cannot tokenize')
   })
 })

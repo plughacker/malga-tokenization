@@ -62,7 +62,7 @@ describe('tokenization', () => {
     const malgaTokenization = new MalgaTokenization(configurationsSDK)
     const token = await malgaTokenization.tokenize()
 
-    expect(Tokenize).toHaveBeenCalledWith(configurationsSDK)
+    expect(Tokenize).toHaveBeenCalledWith(configurationsSDK, getEventsOf(0))
     expect(mockTokenizeHandle).toHaveBeenCalled()
     expect(token).toBe('623e25e1-9c40-442e-beaa-a9d7b735bdc1')
   })

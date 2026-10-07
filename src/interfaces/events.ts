@@ -7,6 +7,8 @@ export type EventTypeReturn =
   | 'focus'
   | 'blur'
   | 'updateCardValues'
+  | 'loading'
+
 export type EventTypePostMessage = Event.Submit | 'updateField'
 export type EventTypeListener = 'message'
 export type EventHandler<T> = (
@@ -60,10 +62,15 @@ export interface MalgaEventDataUpdateCardValuesReturn {
   sandbox?: boolean
 }
 
+export interface MalgaEventDataLoadingReturn {
+  isLoading: boolean
+}
+
 export interface EventPayloadReturnObject {
   cardTypeChanged: MalgaEventDataCardTypeChangePayloadReturn
   validity: MalgaEventDataValidityReturn
   focus: MalgaEventDataFocusBlurReturn
   blur: MalgaEventDataFocusBlurReturn
   updateCardValues: MalgaEventDataUpdateCardValuesReturn
+  loading: MalgaEventDataLoadingReturn
 }

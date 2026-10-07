@@ -43,4 +43,5 @@ export interface MalgaErrorResponse {
 export interface MalgaPayloadResponse {
   tokenId: string
   error: MalgaErrorResponse
+  requestId?: string
 }

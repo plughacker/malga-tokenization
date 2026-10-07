@@ -1,8 +1,9 @@
 import { Event } from 'src/enums'
 import { EventListener } from 'src/events'
+import type { Events } from 'src/events'
 import { submit } from 'src/iframes'
 import { MalgaConfigurations, MalgaPayloadResponse } from 'src/interfaces'
-import { gettingOriginEvent } from 'src/utils'
+import { generateRequestId, gettingOriginEvent } from 'src/utils'
 
 interface MalgaResponse {
   eventType: Event
@@ -10,7 +11,10 @@ interface MalgaResponse {
 }
 
 export class Tokenize {
-  constructor(private readonly configurations: MalgaConfigurations) {}
+  constructor(
+    private readonly configurations: MalgaConfigurations,
+    private readonly events: Events,
+  ) {}
 
   private isValidOrigin(origin: string): boolean {
     const allowedOrigin = gettingOriginEvent(
@@ -26,11 +30,14 @@ export class Tokenize {
       throw new Error('Configurations are required')
     }
 
-    const iframeWindow = submit(this.configurations)
+    const requestId = generateRequestId()
+    const iframeWindow = submit(this.configurations, requestId)
 
     if (!iframeWindow) {
       throw new Error('Card number iframe not found, cannot tokenize')
     }
+
+    this.events.emit(Event.Loading, { isLoading: true })
 
     const windowData = new EventListener(window)
 
@@ -46,13 +53,18 @@ export class Tokenize {
         }
 
         if (event.data.eventType === Event.Tokenize) {
+          const { requestId: responseRequestId, ...payload } = event.data.data
+
+          if (responseRequestId && responseRequestId !== requestId) return
+
           try {
-            resolve(event.data.data)
+            resolve(payload)
           } catch (error) {
             console.error('Error processing tokenize event:', error)
             reject(error)
           } finally {
-            window.removeEventListener('message', messageHandler)
+            windowData.remove('message', messageHandler)
+            this.events.emit(Event.Loading, { isLoading: false })
           }
         }
       }

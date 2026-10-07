@@ -37,6 +37,7 @@ export function handleCreateMessageEventMock(
   origin: string,
   tokenId?: string,
   source?: unknown,
+  requestId?: string,
 ) {
   const messageEvent = new MessageEvent('message', {
     origin: origin,
@@ -44,6 +45,7 @@ export function handleCreateMessageEventMock(
       eventType: eventType,
       data: {
         tokenId: tokenId,
+        ...(requestId && { requestId }),
       },
     },
   })
