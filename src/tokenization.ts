@@ -8,10 +8,9 @@ import { Tokenize } from './tokenize'
 import { Events } from './events'
 import { listener, loaded } from './iframes'
 
-export const eventsEmitter = new Events()
-
 export class MalgaTokenization {
   private readonly configurations: MalgaConfigurations
+  private readonly events = new Events()
 
   constructor(configurations: MalgaConfigurations) {
     if (!configurations.apiKey || !configurations.clientId) {
@@ -20,16 +19,18 @@ export class MalgaTokenization {
       )
     }
 
-    sessionStorage.removeItem('malga-card')
+    sessionStorage.removeItem(
+      `malga-card-${configurations.options.config.fields.cardNumber.container}`,
+    )
 
     this.configurations = configurations
 
     loaded(configurations.options)
-    listener(configurations.options.debug, configurations.options.sandbox)
+    listener(configurations.options, this.events)
   }
 
   public async tokenize() {
-    const tokenize = new Tokenize(this.configurations)
+    const tokenize = new Tokenize(this.configurations, this.events)
     return tokenize.handle()
   }
 
@@ -43,17 +44,15 @@ export class MalgaTokenization {
    * - 'cardTypeChanged': Triggered when the card type is detected or changed.
    * - 'focus': Triggered when a input field receives focus.
    * - 'blur': Triggered when a input field loses focus.
+   * - 'loading': Triggered when a tokenization starts and finishes ({ isLoading }).
    * @param eventHandler - The event handler function.
-   * @returns {void}
+   * @returns A function that removes the registered event handler.
    */
 
   public on<T extends EventTypeReturn>(
     eventType: T,
     eventHandler: (data: EventPayloadReturnObject[T]) => void,
   ) {
-    return eventsEmitter.on(eventType, eventHandler)
+    return this.events.on(eventType, eventHandler)
   }
-  // public on(eventType: EventTypeReturn, eventHandler: (event: any) => void) {
-  //   return eventsEmitter.on(eventType, eventHandler)
-  // }
 }

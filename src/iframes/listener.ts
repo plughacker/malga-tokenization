@@ -1,26 +1,28 @@
 import { CSSClasses, EventEmits, Event } from 'src/enums'
 import { EventListener, handGetValidationEventData } from 'src/events'
+import type { Events } from 'src/events'
 import type {
   MalgaEventDataValidityReturn,
-  MalgaCreditCardFields,
   EventHandler,
+  MalgaOptions,
   MalgaEventDataCardTypeChangePayloadReturn,
 } from 'src/interfaces'
-import { eventsEmitter } from 'src/tokenization'
 import { gettingOriginEvent } from 'src/utils'
 
 function handleEventValidity(
   data: MalgaEventDataValidityReturn,
   parentNode: Element,
+  events: Events,
 ) {
-  handGetValidationEventData(data, parentNode)
+  handGetValidationEventData(data, parentNode, events)
 }
 
 function handleEventCardTypeChanged(
   data: MalgaEventDataCardTypeChangePayloadReturn,
   parentNode: Element,
+  events: Events,
 ) {
-  eventsEmitter.emit(Event.CardTypeChanged, {
+  events.emit(Event.CardTypeChanged, {
     field: data.field,
     parentNode: parentNode,
     card: data.card,
@@ -28,45 +30,49 @@ function handleEventCardTypeChanged(
 }
 
 function handleEventFocus(
-  data: { field: MalgaCreditCardFields },
+  data: { field: string },
   parentNode: Element,
+  events: Events,
 ) {
   parentNode.classList.add(CSSClasses.Focused)
-  eventsEmitter.emit(EventEmits.Focus, {
+  events.emit(EventEmits.Focus, {
     field: data.field,
     parentNode: parentNode,
   })
 }
 
 function handleEventBlur(
-  data: { field: MalgaCreditCardFields },
+  data: { field: string },
   parentNode: Element,
+  events: Events,
 ) {
   parentNode.classList.remove(CSSClasses.Focused)
-  eventsEmitter.emit(EventEmits.Blur, {
+  events.emit(EventEmits.Blur, {
     field: data.field,
     parentNode: parentNode,
   })
 }
 
 function handleEventUpdateCardValues(data: {
-  field: MalgaCreditCardFields
+  field: string
   value: string
+  cardNumberContainer?: string
 }) {
-  const currentCardData = JSON.parse(
-    sessionStorage.getItem('malga-card') || '{}',
-  )
+  const storageKey = `malga-card-${data.cardNumberContainer || data.field}`
 
-  const camelCaseField = data.field.replace(/-([a-z])/g, (g: string) =>
-    g[1].toUpperCase(),
-  )
+  const currentCardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
 
-  const updatedCardData = {
+  const camelCaseField = data.field
+    .replace(/[^a-z-]/gi, '')
+    .replace(/-([a-z])/g, (_, char) => char.toUpperCase())
+    .replace(/-/g, '')
+
+  const updatedData = {
     ...currentCardData,
     [camelCaseField]: data.value,
   }
 
-  sessionStorage.setItem('malga-card', JSON.stringify(updatedCardData))
+  sessionStorage.setItem(storageKey, JSON.stringify(updatedData))
 }
 
 const eventHandlers: { [key: string]: EventHandler<any> } = {
@@ -77,7 +83,11 @@ const eventHandlers: { [key: string]: EventHandler<any> } = {
   [Event.UpdateCardValues]: handleEventUpdateCardValues,
 }
 
-export function listener(debug?: boolean, sandbox?: boolean) {
+export function listener(options: MalgaOptions, events: Events) {
+  const { debug, sandbox } = options
+  const containers = new Set(
+    Object.values(options.config.fields).map((field) => field.container),
+  )
   const windowMessage = new EventListener(window.parent)
 
   windowMessage.listener('message', (event: MessageEvent<any>) => {
@@ -90,6 +100,8 @@ export function listener(debug?: boolean, sandbox?: boolean) {
     try {
       const { eventType, data } = event.data
 
+      if (!containers.has(data?.field)) return
+
       const parentNode = document.querySelector(`#${data?.field}`)
 
       if (!parentNode) return
@@ -97,7 +109,7 @@ export function listener(debug?: boolean, sandbox?: boolean) {
       const handler = eventHandlers[eventType]
 
       if (handler) {
-        handler(data, parentNode)
+        handler(data, parentNode, events)
       } else {
         console.warn(`Unhandled event type: ${eventType}`)
       }
