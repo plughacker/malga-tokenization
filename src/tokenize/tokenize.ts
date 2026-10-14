@@ -10,6 +10,8 @@ interface MalgaResponse {
   data: MalgaPayloadResponse
 }
 
+export const TOKENIZE_TIMEOUT_MS = 30000
+
 export class Tokenize {
   constructor(
     private readonly configurations: MalgaConfigurations,
@@ -42,6 +44,24 @@ export class Tokenize {
     const windowData = new EventListener(window)
 
     return new Promise((resolve, reject) => {
+      const finish = () => {
+        clearTimeout(timeout)
+        windowData.remove('message', messageHandler)
+        this.events.emit(Event.Loading, { isLoading: false })
+      }
+
+      const timeout = setTimeout(() => {
+        finish()
+        resolve({
+          tokenId: '',
+          error: {
+            type: 'timeout',
+            code: 0,
+            message: `No response from the card number iframe after ${TOKENIZE_TIMEOUT_MS}ms`,
+          },
+        } as unknown as MalgaPayloadResponse)
+      }, TOKENIZE_TIMEOUT_MS)
+
       const messageHandler = (event: MessageEvent<MalgaResponse>) => {
         if (event.source !== iframeWindow) return
 
@@ -63,8 +83,7 @@ export class Tokenize {
             console.error('Error processing tokenize event:', error)
             reject(error)
           } finally {
-            windowData.remove('message', messageHandler)
-            this.events.emit(Event.Loading, { isLoading: false })
+            finish()
           }
         }
       }

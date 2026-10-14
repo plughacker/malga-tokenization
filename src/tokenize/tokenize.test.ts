@@ -1,7 +1,7 @@
 import { Event } from 'src/enums'
 import type { Events } from 'src/events'
 import { submit } from 'src/iframes'
-import { Tokenize } from './../tokenize/tokenize'
+import { TOKENIZE_TIMEOUT_MS, Tokenize } from './../tokenize/tokenize'
 import * as iframesModule from 'src/iframes'
 import {
   handleSetupIframeInDOM,
@@ -280,6 +280,38 @@ describe('tokenize', () => {
       }),
       URL_HOSTED_FIELD_PROD,
     )
+  })
+
+  test('should resolve with a timeout error and stop loading when the iframe never answers', async () => {
+    vi.useFakeTimers()
+
+    try {
+      const promise = new Tokenize(
+        configSDKEachEnvironment(false, false),
+        events,
+      ).handle()
+
+      await vi.advanceTimersByTimeAsync(TOKENIZE_TIMEOUT_MS - 1)
+      expect(events.emit).not.toHaveBeenCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+
+      await vi.advanceTimersByTimeAsync(1)
+
+      expect(await promise).toEqual({
+        tokenId: '',
+        error: {
+          type: 'timeout',
+          code: 0,
+          message: expect.stringContaining(`${TOKENIZE_TIMEOUT_MS}ms`),
+        },
+      })
+      expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   test('should reject when the card number iframe is not found', async () => {

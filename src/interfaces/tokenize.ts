@@ -3,6 +3,7 @@ type MalgaErrorType =
   | 'bad_request'
   | 'invalid_request_error'
   | 'card_declined'
+  | 'timeout'
 
 type MalgaErrorDeclinedCode =
   | 'card_not_supported'
