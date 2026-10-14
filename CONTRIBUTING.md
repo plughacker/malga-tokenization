@@ -67,3 +67,19 @@ scope and avoid unrelated commits.
    ```
 
 That’s it! Now [open a pull request](https://help.github.com/articles/using-pull-requests/) with a clear title and description.
+
+## End-to-end tests
+
+Pull requests from branches of this repository run an end-to-end suite (Playwright) that lives in
+the private `client-hosted-fields` repository. The `e2e` workflow checks that
+`URL_HOSTED_FIELD_DEV` in `src/constants/url.ts` is `https://hosted-fields.dev.malga.io`, then
+dispatches the client workflow with the exact commit SHA of the PR. The client builds the SDK from
+that SHA and runs the tests against the dev hosted-fields and dev API, and the result becomes the
+`e2e / client` check of the PR.
+
+- Keep `URL_HOSTED_FIELD_DEV` pointing to `http://localhost:5173` only for local work; switch it
+  back before opening the PR.
+- PRs from forks do not run the suite (no secrets). A maintainer can run the `e2e` workflow manually
+  with the reviewed SHA.
+- Required secret: `E2E_CLIENT_TOKEN` (GitHub App or fine-grained token with `Actions: read & write`
+  on `client-hosted-fields` only).

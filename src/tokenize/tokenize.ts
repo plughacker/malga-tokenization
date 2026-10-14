@@ -1,16 +1,22 @@
 import { Event } from 'src/enums'
 import { EventListener } from 'src/events'
+import type { Events } from 'src/events'
 import { submit } from 'src/iframes'
 import { MalgaConfigurations, MalgaPayloadResponse } from 'src/interfaces'
-import { gettingOriginEvent } from 'src/utils'
+import { generateRequestId, gettingOriginEvent } from 'src/utils'
 
 interface MalgaResponse {
   eventType: Event
   data: MalgaPayloadResponse
 }
 
+export const TOKENIZE_TIMEOUT_MS = 30000
+
 export class Tokenize {
-  constructor(private readonly configurations: MalgaConfigurations) {}
+  constructor(
+    private readonly configurations: MalgaConfigurations,
+    private readonly events: Events,
+  ) {}
 
   private isValidOrigin(origin: string): boolean {
     const allowedOrigin = gettingOriginEvent(
@@ -26,12 +32,39 @@ export class Tokenize {
       throw new Error('Configurations are required')
     }
 
-    submit(this.configurations)
+    const requestId = generateRequestId()
+    const iframeWindow = submit(this.configurations, requestId)
+
+    if (!iframeWindow) {
+      throw new Error('Card number iframe not found, cannot tokenize')
+    }
+
+    this.events.emit(Event.Loading, { isLoading: true })
 
     const windowData = new EventListener(window)
 
     return new Promise((resolve, reject) => {
+      const finish = () => {
+        clearTimeout(timeout)
+        windowData.remove('message', messageHandler)
+        this.events.emit(Event.Loading, { isLoading: false })
+      }
+
+      const timeout = setTimeout(() => {
+        finish()
+        resolve({
+          tokenId: '',
+          error: {
+            type: 'timeout',
+            code: 0,
+            message: `No response from the card number iframe after ${TOKENIZE_TIMEOUT_MS}ms`,
+          },
+        } as unknown as MalgaPayloadResponse)
+      }, TOKENIZE_TIMEOUT_MS)
+
       const messageHandler = (event: MessageEvent<MalgaResponse>) => {
+        if (event.source !== iframeWindow) return
+
         if (!this.isValidOrigin(event.origin)) {
           console.error(
             `Unauthorized origin: ${event.origin}, origin should be ${gettingOriginEvent()}`,
@@ -40,13 +73,17 @@ export class Tokenize {
         }
 
         if (event.data.eventType === Event.Tokenize) {
+          const { requestId: responseRequestId, ...payload } = event.data.data
+
+          if (responseRequestId && responseRequestId !== requestId) return
+
           try {
-            resolve(event.data.data)
+            resolve(payload)
           } catch (error) {
             console.error('Error processing tokenize event:', error)
             reject(error)
           } finally {
-            window.removeEventListener('message', messageHandler)
+            finish()
           }
         }
       }
