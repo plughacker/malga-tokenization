@@ -7,6 +7,7 @@ import type {
 import { Tokenize } from './tokenize'
 import { Events } from './events'
 import { listener, loaded } from './iframes'
+import { getStorageKey } from './utils'
 
 export class MalgaTokenization {
   private readonly configurations: MalgaConfigurations
@@ -19,9 +20,7 @@ export class MalgaTokenization {
       )
     }
 
-    sessionStorage.removeItem(
-      `malga-card-${configurations.options.config.fields.cardNumber.container}`,
-    )
+    sessionStorage.removeItem(getStorageKey(configurations.options))
 
     this.configurations = configurations
 

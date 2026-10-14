@@ -124,6 +124,12 @@ async function handleSubmit(event) {
 
 For more details on the implementation, you can access our documentation by [clicking here](https://docs.malga.io/docs/sdks/tokenization/intro).
 
+### Containers and more than one card
+
+- A `container` can be any element `id` (`card-number`, `numero`, `card.number`...). The collected data is keyed by the field (`cardNumber`, `cardCvv`...), never by the container name.
+- To render two or more cards on the same page, create one `MalgaTokenization` per card, each one with its own containers. A container `id` must never repeat on the page.
+- Each instance keeps its collected card in `sessionStorage` under `malga-card-<cardNumber container>` (it was `malga-card` before). Only relevant if you read that key directly.
+
 ## Examples
 
 If you have any doubts about the integration, you can [click here](https://github.com/plughacker/malga-tokenization/tree/main/examples) to see some examples

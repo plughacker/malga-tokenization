@@ -4,10 +4,11 @@ import type { Events } from 'src/events'
 import type {
   MalgaEventDataValidityReturn,
   EventHandler,
+  ListenerContext,
   MalgaOptions,
   MalgaEventDataCardTypeChangePayloadReturn,
 } from 'src/interfaces'
-import { gettingOriginEvent } from 'src/utils'
+import { getStorageKey, gettingOriginEvent } from 'src/utils'
 
 function handleEventValidity(
   data: MalgaEventDataValidityReturn,
@@ -53,26 +54,26 @@ function handleEventBlur(
   })
 }
 
-function handleEventUpdateCardValues(data: {
-  field: string
-  value: string
-  cardNumberContainer?: string
-}) {
-  const storageKey = `malga-card-${data.cardNumberContainer || data.field}`
+function handleEventUpdateCardValues(
+  data: { field: string; value: string },
+  _parentNode: Element,
+  _events: Events,
+  context: ListenerContext,
+) {
+  const fieldKey = context.fieldKeys.get(data.field)
 
-  const currentCardData = JSON.parse(sessionStorage.getItem(storageKey) || '{}')
+  if (!fieldKey) return
 
-  const camelCaseField = data.field
-    .replace(/[^a-z-]/gi, '')
-    .replace(/-([a-z])/g, (_, char) => char.toUpperCase())
-    .replace(/-/g, '')
+  const currentCardData = JSON.parse(
+    sessionStorage.getItem(context.storageKey) || '{}',
+  )
 
   const updatedData = {
     ...currentCardData,
-    [camelCaseField]: data.value,
+    [fieldKey]: data.value,
   }
 
-  sessionStorage.setItem(storageKey, JSON.stringify(updatedData))
+  sessionStorage.setItem(context.storageKey, JSON.stringify(updatedData))
 }
 
 const eventHandlers: { [key: string]: EventHandler<any> } = {
@@ -85,9 +86,15 @@ const eventHandlers: { [key: string]: EventHandler<any> } = {
 
 export function listener(options: MalgaOptions, events: Events) {
   const { debug, sandbox } = options
-  const containers = new Set(
-    Object.values(options.config.fields).map((field) => field.container),
-  )
+  const context: ListenerContext = {
+    fieldKeys: new Map(
+      Object.entries(options.config.fields).map(([fieldKey, field]) => [
+        field.container,
+        fieldKey,
+      ]),
+    ),
+    storageKey: getStorageKey(options),
+  }
   const windowMessage = new EventListener(window.parent)
 
   windowMessage.listener('message', (event: MessageEvent<any>) => {
@@ -100,16 +107,16 @@ export function listener(options: MalgaOptions, events: Events) {
     try {
       const { eventType, data } = event.data
 
-      if (!containers.has(data?.field)) return
+      if (!context.fieldKeys.has(data?.field)) return
 
-      const parentNode = document.querySelector(`#${data?.field}`)
+      const parentNode = document.getElementById(data.field)
 
       if (!parentNode) return
 
       const handler = eventHandlers[eventType]
 
       if (handler) {
-        handler(data, parentNode, events)
+        handler(data, parentNode, events, context)
       } else {
         console.warn(`Unhandled event type: ${eventType}`)
       }

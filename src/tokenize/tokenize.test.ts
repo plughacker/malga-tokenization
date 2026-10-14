@@ -161,9 +161,7 @@ describe('tokenize', () => {
   )
 
   test('should show error when iframeCardNumber is not found', () => {
-    const querySelectorSpy = vi.spyOn(document, 'querySelector')
-
-    querySelectorSpy.mockReturnValue(null)
+    handleRemoveIframe(iframe)
 
     const consoleErrorSpy = vi.spyOn(console, 'error')
 
@@ -173,7 +171,6 @@ describe('tokenize', () => {
       'iframeCardNumber is null or has no contentWindow, cannot send postMessage',
     )
 
-    querySelectorSpy.mockRestore()
     consoleErrorSpy.mockRestore()
   })
 

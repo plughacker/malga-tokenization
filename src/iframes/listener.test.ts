@@ -37,15 +37,14 @@ describe('listener', () => {
 
     vi.spyOn(parentNode.classList, 'toggle')
 
-    document.querySelector = vi.fn((selector) => {
-      if (selector === '#card-number') return parentNode
-
-      return null
-    })
+    vi.spyOn(document, 'getElementById').mockImplementation((id) =>
+      id === 'card-number' ? parentNode : null,
+    )
   })
 
   afterEach(() => {
-    vi.clearAllMocks()
+    vi.restoreAllMocks()
+    sessionStorage.clear()
 
     parentNode.classList.remove(CSSClasses.Focused)
   })
@@ -78,11 +77,11 @@ describe('listener', () => {
 
       messageHandler(event)
 
-      expect(document.querySelector).toHaveBeenCalledWith(
-        `#${event.data.data.field}`,
+      expect(document.getElementById).toHaveBeenCalledWith(
+        event.data.data.field,
       )
 
-      expect(document.querySelector).toHaveBeenCalledTimes(1)
+      expect(document.getElementById).toHaveBeenCalledTimes(1)
     },
   )
 
@@ -95,7 +94,7 @@ describe('listener', () => {
 
     messageHandler(event)
 
-    expect(document.querySelector).not.toHaveBeenCalled()
+    expect(document.getElementById).not.toHaveBeenCalled()
   })
 
   test.each`
@@ -220,7 +219,66 @@ describe('listener', () => {
 
     messageHandler(event)
 
-    expect(document.querySelector).not.toHaveBeenCalled()
+    expect(document.getElementById).not.toHaveBeenCalled()
     expect(events.emit).not.toHaveBeenCalled()
   })
+
+  test.each`
+    containers
+    ${{ cardNumber: 'num', cardHolderName: 'nome', cardCvv: 'cvv', cardExpirationDate: 'validade' }}
+    ${{ cardNumber: 'card_number', cardHolderName: 'card_holder', cardCvv: 'card_cvv', cardExpirationDate: 'card_exp' }}
+    ${{ cardNumber: 'card.number', cardHolderName: '1-holder', cardCvv: 'cvv-2', cardExpirationDate: 'exp:date' }}
+  `(
+    'should collect the card by field key whatever the container names: $containers.cardNumber',
+    ({ containers }) => {
+      vi.mocked(document.getElementById).mockRestore()
+
+      const fields = Object.fromEntries(
+        Object.entries(containers as Record<string, string>).map(
+          ([fieldKey, container]) => {
+            const element = document.createElement('div')
+            element.id = container
+            document.body.appendChild(element)
+            return [fieldKey, { container }]
+          },
+        ),
+      )
+
+      const options = {
+        ...configurationsSDK.options,
+        config: { ...configurationsSDK.options.config, fields },
+      } as any
+
+      listener(options, events as any)
+
+      const messageHandler = addEventListenerSpy.mock.calls[0][1]
+
+      for (const [fieldKey, container] of Object.entries(
+        containers as Record<string, string>,
+      )) {
+        const event = handleCreateMockEvent(
+          Event.UpdateCardValues,
+          URL_HOSTED_FIELD_PROD,
+        )
+        event.data.data = {
+          field: container,
+          value: `cifrado-${fieldKey}`,
+        } as any
+        messageHandler(event)
+      }
+
+      expect(
+        JSON.parse(
+          sessionStorage.getItem(`malga-card-${containers.cardNumber}`) || '{}',
+        ),
+      ).toEqual({
+        cardNumber: 'cifrado-cardNumber',
+        cardHolderName: 'cifrado-cardHolderName',
+        cardCvv: 'cifrado-cardCvv',
+        cardExpirationDate: 'cifrado-cardExpirationDate',
+      })
+
+      document.body.innerHTML = ''
+    },
+  )
 })

@@ -1,16 +1,17 @@
 import type { MalgaConfigurations } from 'src/interfaces'
 import { Event } from 'src/enums'
 import { EventPostMessage } from 'src/events'
-import { gettingOriginEvent } from 'src/utils'
+import { getStorageKey, gettingOriginEvent } from 'src/utils'
 
 export function submit(
   configurations: MalgaConfigurations,
   requestId?: string,
 ): Window | undefined {
   const container = configurations.options.config.fields.cardNumber.container
-  const iframeCardNumber = document.querySelector(
-    `iframe[name=${container}]`,
-  ) as HTMLIFrameElement
+  const iframeCardNumber = Array.from(
+    document.getElementsByName(container),
+  ).find((element) => element instanceof HTMLIFrameElement) as
+    HTMLIFrameElement | undefined
 
   if (!iframeCardNumber || !iframeCardNumber.contentWindow) {
     console.error(
@@ -24,7 +25,7 @@ export function submit(
     configurations.options.sandbox,
   )
 
-  const storageKey = `malga-card-${container}`
+  const storageKey = getStorageKey(configurations.options)
   const getSessionStorageCard = JSON.parse(
     sessionStorage.getItem(storageKey) || '{}',
   )

@@ -11,10 +11,16 @@ export type EventTypeReturn =
 
 export type EventTypePostMessage = Event.Submit | 'updateField'
 export type EventTypeListener = 'message'
+export interface ListenerContext {
+  fieldKeys: Map<string, string>
+  storageKey: string
+}
+
 export type EventHandler<T> = (
   data: T,
   parentNode: Element,
   events: Events,
+  context: ListenerContext,
 ) => void
 
 interface CreditCardReturn {
