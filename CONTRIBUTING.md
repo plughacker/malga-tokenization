@@ -63,6 +63,11 @@ scope and avoid unrelated commits.
    pnpm changeset
    ```
 
+   The release only publishes to npm if the hosted-fields version in
+   `src/constants/version.ts` (`HOSTED_FIELDS_VERSION`) is already live in
+   production and sandbox (`pnpm check:hosted-fields`). Deploy the hosted-fields
+   first; if the release job fails on this check, re-run it after the deploy.
+
    ```bash
    # Push the branch for your new feature
    git push origin feature/thing
