@@ -105,10 +105,6 @@ malgaTokenization.on('focus', (event) => {
   console.log('blur', event)
 })
 
-malgaTokenization.on('loading', ({ isLoading }) => {
-  submitButton.disabled = isLoading
-})
-
 async function handleSubmit(event) {
   event.preventDefault()
 
@@ -123,16 +119,6 @@ async function handleSubmit(event) {
 3. Submit the form and see the magic happen 💳
 
 For more details on the implementation, you can access our documentation by [clicking here](https://docs.malga.io/docs/sdks/tokenization/intro).
-
-### Loading and timeout
-
-`loading` is `true` when a `tokenize()` starts and `false` when it finishes. If the card number iframe does not answer within 30 seconds, `tokenize()` resolves with `{ tokenId: '', error: { type: 'timeout', code: 0, message } }` and `loading` goes back to `false`.
-
-### Containers and more than one card
-
-- A `container` can be any element `id` (`card-number`, `numero`, `card.number`...). The collected data is keyed by the field (`cardNumber`, `cardCvv`...), never by the container name.
-- To render two or more cards on the same page, create one `MalgaTokenization` per card, each one with its own containers. A container `id` must never repeat on the page.
-- Each instance keeps its collected card in `sessionStorage` under `malga-card-<cardNumber container>` (it was `malga-card` before). Only relevant if you read that key directly.
 
 ## Examples
 

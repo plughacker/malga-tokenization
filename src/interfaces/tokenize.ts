@@ -3,7 +3,6 @@ type MalgaErrorType =
   | 'bad_request'
   | 'invalid_request_error'
   | 'card_declined'
-  | 'timeout'
 
 type MalgaErrorDeclinedCode =
   | 'card_not_supported'
@@ -42,5 +41,4 @@ type MalgaErrorDeclinedCode =
 export interface MalgaPayloadResponse {
   tokenId: string
   error: MalgaErrorResponse
-  requestId?: string
 }

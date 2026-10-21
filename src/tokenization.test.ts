@@ -1,5 +1,4 @@
-import { MalgaTokenization } from './tokenization'
-import { Events } from './events'
+import { MalgaTokenization, eventsEmitter } from './tokenization' // Adjust path as needed
 import { Tokenize } from './tokenize'
 import { loaded, listener } from './iframes'
 import { configurationsSDK } from 'tests/mocks'
@@ -13,11 +12,6 @@ vi.mock('./events', () => {
   }))
   return { Events: MockEvents }
 })
-
-const getEventsOf = (index: number) =>
-  vi.mocked(Events).mock.results[index].value as {
-    on: ReturnType<typeof vi.fn>
-  }
 
 describe('tokenization', () => {
   beforeEach(() => {
@@ -62,7 +56,7 @@ describe('tokenization', () => {
     const malgaTokenization = new MalgaTokenization(configurationsSDK)
     const token = await malgaTokenization.tokenize()
 
-    expect(Tokenize).toHaveBeenCalledWith(configurationsSDK, getEventsOf(0))
+    expect(Tokenize).toHaveBeenCalledWith(configurationsSDK)
     expect(mockTokenizeHandle).toHaveBeenCalled()
     expect(token).toBe('623e25e1-9c40-442e-beaa-a9d7b735bdc1')
   })
@@ -73,7 +67,7 @@ describe('tokenization', () => {
 
     malgaTokenization.on('cardTypeChanged', mockEventHandler)
 
-    expect(getEventsOf(0).on).toHaveBeenCalledWith(
+    expect(eventsEmitter.on).toHaveBeenCalledWith(
       'cardTypeChanged',
       mockEventHandler,
     )
@@ -85,7 +79,7 @@ describe('tokenization', () => {
 
     malgaTokenization.on('focus', mockEventHandler)
 
-    expect(getEventsOf(0).on).toHaveBeenCalledWith('focus', mockEventHandler)
+    expect(eventsEmitter.on).toHaveBeenCalledWith('focus', mockEventHandler)
   })
 
   test('should call eventsEmitter.on when type validity is called', () => {
@@ -94,27 +88,6 @@ describe('tokenization', () => {
 
     malgaTokenization.on('validity', mockEventHandler)
 
-    expect(getEventsOf(0).on).toHaveBeenCalledWith('validity', mockEventHandler)
-  })
-
-  test('should pass its own events emitter to the listener', () => {
-    new MalgaTokenization(configurationsSDK)
-
-    expect(listener).toHaveBeenCalledWith(
-      configurationsSDK.options,
-      getEventsOf(0),
-    )
-  })
-
-  test('should keep events isolated between instances', () => {
-    const first = new MalgaTokenization(configurationsSDK)
-    const second = new MalgaTokenization(configurationsSDK)
-    const firstHandler = vi.fn()
-
-    first.on('validity', firstHandler)
-
-    expect(getEventsOf(0).on).toHaveBeenCalledWith('validity', firstHandler)
-    expect(getEventsOf(1).on).not.toHaveBeenCalled()
-    expect(second).not.toBe(first)
+    expect(eventsEmitter.on).toHaveBeenCalledWith('validity', mockEventHandler)
   })
 })

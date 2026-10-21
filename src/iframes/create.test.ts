@@ -34,36 +34,4 @@ describe('create', () => {
     'cardCvv',
   ]
   fields.forEach(testCreatingIframe)
-
-  test.each(['card.number', '1-card-number', 'card:number', 'card number'])(
-    'should create the iframe in a container that is not a valid CSS selector: %s',
-    (container) => {
-      const parentNode = document.createElement('div')
-      parentNode.id = container
-      document.body.appendChild(parentNode)
-
-      expect(() => create({ container })).not.toThrow()
-
-      const iframe = parentNode.querySelector('iframe')
-      expect(iframe).not.toBeNull()
-      expect(iframe?.getAttribute('name')).toBe(container)
-
-      parentNode.remove()
-    },
-  )
-
-  test('should create the iframe when the container is mounted later', async () => {
-    const container = 'card.number-later'
-
-    create({ container })
-
-    const parentNode = document.createElement('div')
-    parentNode.id = container
-    document.body.appendChild(parentNode)
-
-    await new Promise((resolve) => setTimeout(resolve, 0))
-
-    expect(parentNode.querySelector('iframe')).not.toBeNull()
-    parentNode.remove()
-  })
 })
