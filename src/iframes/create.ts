@@ -1,17 +1,17 @@
 import { CSSClasses } from 'src/enums'
 import type { MalgaInputFieldConfiguration } from 'src/interfaces'
-import { gettingOriginEvent, waitingForElement } from 'src/utils'
+import { gettingIframeSrc, waitingForElement } from 'src/utils'
 
 export function create(
   fieldConfig: MalgaInputFieldConfiguration,
   debug?: boolean,
   sandbox?: boolean,
 ) {
-  const origin = gettingOriginEvent(debug, sandbox)
+  const src = gettingIframeSrc(debug, sandbox)
   const iframe = document.createElement('iframe')
 
   iframe.setAttribute('name', fieldConfig.container)
-  iframe.setAttribute('src', origin)
+  iframe.setAttribute('src', src)
   iframe.setAttribute('width', '100%')
   iframe.setAttribute('height', '100%')
   iframe.setAttribute('frameborder', '0')

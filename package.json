@@ -49,7 +49,8 @@
     "test:ci": "vitest --run",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "check:hosted-fields": "node scripts/check-hosted-fields.js",
+    "release": "pnpm check:hosted-fields && pnpm build && changeset publish"
   },
   "devDependencies": {
     "@changesets/changelog-github": "^0.5.1",
