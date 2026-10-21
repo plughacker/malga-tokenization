@@ -1,9 +1,12 @@
 {
   "name": "@malga/tokenization",
-  "version": "2.2.7",
+  "version": "3.0.1",
   "packageManager": "pnpm@9.0.5",
   "description": "Simple way to tokenize cards with Malga",
-  "repository": "git@github.com:plughacker/malga-tokenization.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/plughacker/malga-tokenization.git"
+  },
   "author": "Malga <engineer@malga.io>",
   "contributors": [
     "Leonardo Pinheiro <leonardo@malga.io>"
@@ -45,11 +48,13 @@
     "test": "vitest",
     "test:ci": "vitest --run",
     "changeset": "changeset",
-    "version": "changeset version",
-    "prerelease": "yarn build",
-    "release": "changeset publish"
+    "version-packages": "changeset version",
+    "check:hosted-fields": "node scripts/check-hosted-fields.js",
+    "release": "pnpm check:hosted-fields && pnpm build && changeset publish"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.1",
+    "@changesets/cli": "^2.28.1",
     "@commitlint/cli": "^17.7.1",
     "@commitlint/config-conventional": "^17.7.0",
     "@testing-library/dom": "^9.3.4",
@@ -72,9 +77,5 @@
     "typescript": "^5.2.2",
     "vite-tsconfig-paths": "^4.3.1",
     "vitest": "^0.34.4"
-  },
-  "dependencies": {
-    "@changesets/changelog-github": "^0.5.1",
-    "@changesets/cli": "^2.28.1"
   }
 }

@@ -2,7 +2,8 @@ name: Release
 on:
   push:
     branches:
-      - 'release/*'
+      - main
+  workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -10,30 +11,19 @@ env:
   HUSKY: 0
 
 jobs:
-  # build:
-  #   if: github.repository == 'plughacker/malga-tokenization'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - uses: actions/setup-node@v3
-  #       with:
-  #         node-version: 20
-  #         cache: yarn
-  #     - run: yarn install --frozen-lockfile
-
   test:
     if: github.repository == 'plughacker/malga-tokenization'
-    # needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - uses: pnpm/action-setup@v4
-        with:
-          run_install: true
-      - uses: actions/setup-node@v3
+
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -46,38 +36,35 @@ jobs:
     if: github.repository == 'plughacker/malga-tokenization'
     runs-on: ubuntu-latest
     permissions:
-      packages: write
       contents: write
       pull-requests: write
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - uses: pnpm/action-setup@v4
+
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version-file: '.nvmrc'
+          node-version: 20
           cache: pnpm
+          registry-url: https://registry.npmjs.org
 
       - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+        run: pnpm install --frozen-lockfile
 
-      - name: Setup npm auth
-        run: |
-          echo "registry=https://registry.npmjs.org" >> ~/.npmrc
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ~/.npmrc
-
-      - name: Release and Publish
-        id: changesets
+      - name: Version PR or publish
         uses: changesets/action@v1
         with:
-          version: pnpm version
-          commit: 'chore: update version for release'
-          title: 'chore: update version for release'
+          version: pnpm version-packages
           publish: pnpm release
+          commit: 'chore: version packages'
+          title: 'chore: version packages'
           createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

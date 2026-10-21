@@ -29,7 +29,7 @@ scope and avoid unrelated commits.
    git remote add upstream git@github.com:plughacker/malga-tokenization.git
 
    # Install the tools necessary for testing
-   yarn install
+   pnpm install
    ```
 
 2. Create a branch for your feature or fix:
@@ -48,13 +48,25 @@ scope and avoid unrelated commits.
 
    ```bash
    # Test current code
-   yarn test
+   pnpm test:ci
 
    # Build current code
-   yarn build
+   pnpm build
    ```
 
    > Note: ensure your version of Node is 18 or higher to run scripts
+
+   If the change affects the published package, add a changeset and commit it
+   with your code:
+
+   ```bash
+   pnpm changeset
+   ```
+
+   The release only publishes to npm if the hosted-fields version in
+   `src/constants/version.ts` (`HOSTED_FIELDS_VERSION`) is already live in
+   production and sandbox (`pnpm check:hosted-fields`). Deploy the hosted-fields
+   first; if the release job fails on this check, re-run it after the deploy.
 
    ```bash
    # Push the branch for your new feature
