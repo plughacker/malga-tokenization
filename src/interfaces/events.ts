@@ -1,5 +1,5 @@
 import type { Event } from 'src/enums'
-import type { MalgaCreditCardFields } from './configurations'
+import type { Events } from 'src/events'
 
 export type EventTypeReturn =
   | 'validity'
@@ -7,13 +7,20 @@ export type EventTypeReturn =
   | 'focus'
   | 'blur'
   | 'updateCardValues'
+  | 'loading'
+
 export type EventTypePostMessage = Event.Submit | 'updateField'
 export type EventTypeListener = 'message'
+export interface ListenerContext {
+  fieldKeys: Map<string, string>
+  storageKey: string
+}
+
 export type EventHandler<T> = (
   data: T,
   parentNode: Element,
-  debug?: boolean,
-  sandbox?: boolean,
+  events: Events,
+  context: ListenerContext,
 ) => void
 
 interface CreditCardReturn {
@@ -29,12 +36,12 @@ interface CreditCardReturn {
 }
 
 export interface MalgaEventDataValidityErrorReturn {
-  field: MalgaCreditCardFields
+  field: string
   message: string
   code: string
 }
 export interface MalgaEventDataValidityReturn {
-  field: MalgaCreditCardFields
+  field: string
   valid: boolean
   error: MalgaEventDataValidityErrorReturn
   empty: boolean
@@ -43,21 +50,26 @@ export interface MalgaEventDataValidityReturn {
 }
 
 export interface MalgaEventDataCardTypeChangePayloadReturn {
-  field: MalgaCreditCardFields
+  field: string
   parentNode: Element
   card?: CreditCardReturn
 }
 
 export interface MalgaEventDataFocusBlurReturn {
-  field: MalgaCreditCardFields
+  field: string
   parentNode: Element
 }
 
 export interface MalgaEventDataUpdateCardValuesReturn {
-  field: MalgaCreditCardFields
+  field: string
   value: string
+  cardNumberContainer?: string
   debug?: boolean
   sandbox?: boolean
+}
+
+export interface MalgaEventDataLoadingReturn {
+  isLoading: boolean
 }
 
 export interface EventPayloadReturnObject {
@@ -66,4 +78,5 @@ export interface EventPayloadReturnObject {
   focus: MalgaEventDataFocusBlurReturn
   blur: MalgaEventDataFocusBlurReturn
   updateCardValues: MalgaEventDataUpdateCardValuesReturn
+  loading: MalgaEventDataLoadingReturn
 }

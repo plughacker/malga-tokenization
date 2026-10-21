@@ -1,11 +1,5 @@
-export type MalgaCreditCardFields =
-  | 'card-number'
-  | 'card-holder-name'
-  | 'card-expiration-date'
-  | 'card-cvv'
-
 export interface MalgaInputFieldConfiguration {
-  container: MalgaCreditCardFields
+  container: string
   placeholder?: string
   type?: string
   needMask?: boolean

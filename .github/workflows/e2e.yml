@@ -1,0 +1,132 @@
+name: e2e
+
+# Roda os testes E2E (Playwright) do repositório privado client-hosted-fields
+# usando o SDK deste commit. O client faz o checkout e o build deste repositório
+# no SHA informado, então o que é testado é exatamente o código do PR, não o npm.
+#
+# Fluxo: guarda da URL de dev -> dispara o workflow do client -> acompanha o
+# resultado. O job abaixo é o check do PR (PASS/FAIL).
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/e2e.yml'
+  # Para PRs de fork (sem secrets) ou reexecuções: um mantenedor informa o SHA depois de revisar o código.
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: SHA (40 caracteres) do commit a testar
+        required: true
+  workflow_call:
+    inputs:
+      sha:
+        type: string
+        required: true
+    secrets:
+      E2E_CLIENT_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || inputs.sha || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  client:
+    name: e2e / client
+    # Só roda onde há secrets: nunca em PRs de fork (e nunca via pull_request_target).
+    if: >-
+      github.repository == 'plughacker/malga-tokenization' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CLIENT_REPO: plughacker/client-hosted-fields
+      DEV_URL: "export const URL_HOSTED_FIELD_DEV = 'https://hosted-fields.dev.malga.io'"
+      SHA: ${{ github.event.pull_request.head.sha || inputs.sha }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      # GitHub App (preferível) ou PAT fine-grained com Actions: read & write,
+      # restrito ao repositório do client.
+      GH_TOKEN: ${{ secrets.E2E_CLIENT_TOKEN }}
+    steps:
+      - name: Validar o SHA
+        run: |
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::SHA inválido: $SHA"; exit 1; }
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+          persist-credentials: false
+
+      # URL_HOSTED_FIELD_DEV pode estar como http://localhost:5173 na máquina de quem
+      # desenvolve (uso local). O PR precisa levar a URL do ambiente de dev.
+      - name: Guarda da URL de dev
+        run: |
+          grep -Fq "$DEV_URL" src/constants/url.ts || {
+            echo "::error file=src/constants/url.ts::URL_HOSTED_FIELD_DEV precisa ser 'https://hosted-fields.dev.malga.io' para o E2E (hoje aponta para outro endereço)."
+            exit 1
+          }
+
+      - name: Disparar o workflow do client
+        id: dispatch
+        run: |
+          CORRELATION_ID="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "correlation_id=$CORRELATION_ID" >> "$GITHUB_OUTPUT"
+          gh workflow run e2e.yml -R "$CLIENT_REPO" \
+            -f tokenization_sha="$SHA" \
+            -f pr_number="$PR_NUMBER" \
+            -f correlation_id="$CORRELATION_ID"
+
+      # `workflow_dispatch` não devolve o id do run: localizamos pelo `run-name`.
+      - name: Localizar o run do client
+        id: find
+        env:
+          CORRELATION_ID: ${{ steps.dispatch.outputs.correlation_id }}
+        run: |
+          for attempt in $(seq 1 30); do
+            RUN_ID=$(gh run list -R "$CLIENT_REPO" --workflow e2e.yml --event workflow_dispatch --limit 30 \
+              --json databaseId,displayTitle \
+              --jq ".[] | select(.displayTitle | contains(\"$CORRELATION_ID\")) | .databaseId" | head -n1)
+            if [ -n "$RUN_ID" ]; then
+              echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+              echo "Run do client: $RUN_ID"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::Run do client não encontrado (correlation $CORRELATION_ID)"
+          exit 1
+
+      - name: Aguardar o resultado do client
+        run: |
+          gh run watch "${{ steps.find.outputs.run_id }}" -R "$CLIENT_REPO" --exit-status --interval 20
+
+      - name: Resumo
+        if: ${{ !cancelled() && steps.find.outputs.run_id != '' }}
+        env:
+          RUN_ID: ${{ steps.find.outputs.run_id }}
+        run: |
+          {
+            echo "### E2E no client · \`$SHA\`"
+            echo
+            echo "Run (acesso restrito à org): https://github.com/$CLIENT_REPO/actions/runs/$RUN_ID"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+          mkdir -p e2e-summary
+          if gh run download "$RUN_ID" -R "$CLIENT_REPO" -n e2e-summary -D e2e-summary 2>/dev/null; then
+            node -e '
+              const { tests } = require("./e2e-summary/e2e-summary.json");
+              console.log("| Teste | Resultado | Duração |\n|---|---|---|");
+              for (const t of tests) console.log(`| ${t.title} | ${t.status} | ${(t.duration / 1000).toFixed(1)}s |`);
+            ' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Cancelar o run do client se este for cancelado
+        if: ${{ cancelled() && steps.find.outputs.run_id != '' }}
+        run: gh run cancel "${{ steps.find.outputs.run_id }}" -R "$CLIENT_REPO" || true
