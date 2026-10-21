@@ -21,10 +21,6 @@ export class EventListener {
   listener(eventType: EventTypeListener, eventHandler: (event: any) => void) {
     this.action.addEventListener(eventType, eventHandler)
   }
-
-  remove(eventType: EventTypeListener, eventHandler: (event: any) => void) {
-    this.action.removeEventListener(eventType, eventHandler)
-  }
 }
 
 export class Events {
@@ -37,19 +33,12 @@ export class Events {
   public on<T extends keyof EventPayloadReturnObject>(
     eventType: T,
     eventHandler: (data: EventPayloadReturnObject[T]) => void,
-  ): () => void {
+  ) {
     if (!this.events[eventType]) {
       this.events[eventType] = []
     }
 
     this.events[eventType]?.push(eventHandler)
-
-    return () => {
-      const handlers = this.events[eventType]
-      const index = handlers?.indexOf(eventHandler) ?? -1
-
-      if (index !== -1) handlers?.splice(index, 1)
-    }
   }
 
   public emit<T extends keyof EventPayloadReturnObject>(

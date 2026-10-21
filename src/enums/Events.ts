@@ -7,7 +7,6 @@ export enum Event {
   CardTypeChanged = 'cardTypeChanged',
   Validity = 'validity',
   UpdateCardValues = 'updateCardValues',
-  Loading = 'loading',
 }
 
 export enum EventEmits {
@@ -16,5 +15,4 @@ export enum EventEmits {
   Focus = 'focus',
   Blur = 'blur',
   UpdateCardValues = 'updateCardValues',
-  Loading = 'loading',
 }

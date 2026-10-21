@@ -3,4 +3,4 @@
 // então o iframe é carregado de /<versão>/index.html. Só esse formato serve a
 // versão: /<versão>/, com ou sem barra, não serve a versão (cai na raiz em dev
 // e responde 403 em sandbox e produção).
-export const HOSTED_FIELDS_VERSION = '3.0.0'
+export const HOSTED_FIELDS_VERSION = '2.0.0'

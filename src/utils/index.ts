@@ -1,5 +1,3 @@
 export * from './observer'
 export * from './parsedString'
 export * from './origin'
-export * from './requestId'
-export * from './storage'

@@ -1,11 +1,10 @@
 import { CSSClasses, Event } from 'src/enums'
 import type { MalgaEventDataValidityReturn } from 'src/interfaces'
-import type { Events } from './events'
+import { eventsEmitter } from 'src/tokenization'
 
 export function handGetValidationEventData(
   data: MalgaEventDataValidityReturn,
   parentNode: Element | null,
-  events: Events,
 ) {
   const isValid = data.valid
   const isEmpty = data.empty
@@ -20,7 +19,7 @@ export function handGetValidationEventData(
   parentNode?.classList.toggle(CSSClasses.Valid, isValid)
   parentNode?.classList.toggle(CSSClasses.Invalid, !isValid)
 
-  events.emit(Event.Validity, {
+  eventsEmitter.emit(Event.Validity, {
     field: data.field,
     error: data.error,
     valid: data.valid,

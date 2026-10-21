@@ -1,19 +1,21 @@
+import type { MalgaCreditCardFields } from 'src/interfaces'
+
 export function waitingForElement(
-  container: string,
+  container: MalgaCreditCardFields,
   appendElement: (element: any) => void,
 ) {
-  const element = document.getElementById(container)
+  const element = document.querySelector(`#${container}`)
 
   if (element) {
-    appendElement(element)
+    appendElement(element as HTMLElement)
     return
   }
 
   const observerElement = new MutationObserver((_, observer) => {
-    const element = document.getElementById(container)
+    const element = document.querySelector(`#${container}`)
     if (element) {
       observer.disconnect()
-      appendElement(element)
+      appendElement(element as HTMLElement)
     }
   })
 
