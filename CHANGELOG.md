@@ -1,5 +1,11 @@
 # @malga/tokenization
 
+## 4.0.0
+
+### Major Changes
+
+- [#52](https://github.com/plughacker/malga-tokenization/pull/52) [`f5fb1c8`](https://github.com/plughacker/malga-tokenization/commit/f5fb1c8379bea81c936650c8721bb2ab9ce70859) Thanks [@milenacrios](https://github.com/milenacrios)! - enable tokenization for 2 or more cards
+
 ## 3.0.1
 
 ### Patch Changes
