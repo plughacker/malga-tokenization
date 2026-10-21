@@ -1,7 +1,7 @@
 import { listener } from './listener'
 import { CSSClasses, Event } from 'src/enums'
-import { eventsEmitter } from 'src/tokenization'
 import {
+  configurationsSDK,
   handleCreateMockEvent,
   handleCreateMockValidityEvent,
 } from 'tests/mocks'
@@ -23,17 +23,13 @@ vi.mock('src/events', async () => {
   }
 })
 
-vi.mock('src/tokenization', () => ({
-  eventsEmitter: {
-    emit: vi.fn(),
-  },
-}))
-
 describe('listener', () => {
+  let events: { emit: ReturnType<typeof vi.fn> }
   let addEventListenerSpy: any
   let parentNode: HTMLElement
 
   beforeEach(() => {
+    events = { emit: vi.fn() }
     addEventListenerSpy = vi.spyOn(window, 'addEventListener')
     parentNode = document.createElement('div')
 
@@ -41,21 +37,23 @@ describe('listener', () => {
 
     vi.spyOn(parentNode.classList, 'toggle')
 
-    document.querySelector = vi.fn((selector) => {
-      if (selector === '#card-number') return parentNode
-
-      return null
-    })
+    vi.spyOn(document, 'getElementById').mockImplementation((id) =>
+      id === 'card-number' ? parentNode : null,
+    )
   })
 
   afterEach(() => {
-    vi.clearAllMocks()
+    vi.restoreAllMocks()
+    sessionStorage.clear()
 
     parentNode.classList.remove(CSSClasses.Focused)
   })
 
   test('should add a message event listener to the window', () => {
-    listener(true, false)
+    listener(
+      { ...configurationsSDK.options, debug: true, sandbox: false },
+      events as any,
+    )
 
     expect(addEventListenerSpy).toHaveBeenCalledWith(
       'message',
@@ -71,7 +69,7 @@ describe('listener', () => {
   `(
     'should get the data and type from event with correct origin: $url',
     ({ url, debug, sandbox }) => {
-      listener(debug, sandbox)
+      listener({ ...configurationsSDK.options, debug, sandbox }, events as any)
 
       const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
@@ -79,16 +77,16 @@ describe('listener', () => {
 
       messageHandler(event)
 
-      expect(document.querySelector).toHaveBeenCalledWith(
-        `#${event.data.data.field}`,
+      expect(document.getElementById).toHaveBeenCalledWith(
+        event.data.data.field,
       )
 
-      expect(document.querySelector).toHaveBeenCalledTimes(1)
+      expect(document.getElementById).toHaveBeenCalledTimes(1)
     },
   )
 
   test('should ignore messages from incorrect origins', () => {
-    listener()
+    listener(configurationsSDK.options, events as any)
 
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
@@ -96,7 +94,7 @@ describe('listener', () => {
 
     messageHandler(event)
 
-    expect(document.querySelector).not.toHaveBeenCalled()
+    expect(document.getElementById).not.toHaveBeenCalled()
   })
 
   test.each`
@@ -107,7 +105,7 @@ describe('listener', () => {
   `(
     'should emit Validity event for Validity event type',
     ({ url, debug, sandbox }) => {
-      listener(debug, sandbox)
+      listener({ ...configurationsSDK.options, debug, sandbox }, events as any)
 
       const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
@@ -117,7 +115,7 @@ describe('listener', () => {
 
       console.log('event data', event)
 
-      expect(eventsEmitter.emit).toHaveBeenCalledWith('validity', {
+      expect(events.emit).toHaveBeenCalledWith('validity', {
         field: event.data.data.field,
         valid: event.data.data.valid,
         empty: event.data.data.empty,
@@ -135,7 +133,7 @@ describe('listener', () => {
   `(
     'should emit CardTypeChanged event for CardTypeChanged event type',
     ({ url, debug, sandbox }) => {
-      listener(debug, sandbox)
+      listener({ ...configurationsSDK.options, debug, sandbox }, events as any)
 
       const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
@@ -154,7 +152,7 @@ describe('listener', () => {
 
       messageHandler(updateEvent)
 
-      expect(eventsEmitter.emit).toHaveBeenCalledWith('cardTypeChanged', {
+      expect(events.emit).toHaveBeenCalledWith('cardTypeChanged', {
         card: 'visa',
         parentNode: expect.any(Element),
         field: 'card-number',
@@ -170,7 +168,7 @@ describe('listener', () => {
   `(
     'should emit Focus event for Focus event type',
     ({ url, debug, sandbox }) => {
-      listener(debug, sandbox)
+      listener({ ...configurationsSDK.options, debug, sandbox }, events as any)
 
       const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
@@ -178,7 +176,7 @@ describe('listener', () => {
 
       messageHandler(event)
 
-      expect(eventsEmitter.emit).toHaveBeenCalledWith('focus', {
+      expect(events.emit).toHaveBeenCalledWith('focus', {
         field: 'card-number',
         parentNode: expect.any(Element),
       })
@@ -195,7 +193,7 @@ describe('listener', () => {
   `('should emit Blur event for Blur event type', ({ url, debug, sandbox }) => {
     parentNode.classList.add(CSSClasses.Focused)
 
-    listener(debug, sandbox)
+    listener({ ...configurationsSDK.options, debug, sandbox }, events as any)
 
     const messageHandler = addEventListenerSpy.mock.calls[0][1]
 
@@ -203,11 +201,84 @@ describe('listener', () => {
 
     messageHandler(event)
 
-    expect(eventsEmitter.emit).toHaveBeenCalledWith('blur', {
+    expect(events.emit).toHaveBeenCalledWith('blur', {
       field: 'card-number',
       parentNode: expect.any(Element),
     })
 
     expect(parentNode.classList.contains(CSSClasses.Focused)).toBe(false)
   })
+
+  test('should ignore messages from fields of another instance', () => {
+    listener(configurationsSDK.options, events as any)
+
+    const messageHandler = addEventListenerSpy.mock.calls[0][1]
+
+    const event = handleCreateMockEvent(Event.Focus, URL_HOSTED_FIELD_PROD)
+    event.data.data.field = 'card-number-other'
+
+    messageHandler(event)
+
+    expect(document.getElementById).not.toHaveBeenCalled()
+    expect(events.emit).not.toHaveBeenCalled()
+  })
+
+  test.each`
+    containers
+    ${{ cardNumber: 'num', cardHolderName: 'nome', cardCvv: 'cvv', cardExpirationDate: 'validade' }}
+    ${{ cardNumber: 'card_number', cardHolderName: 'card_holder', cardCvv: 'card_cvv', cardExpirationDate: 'card_exp' }}
+    ${{ cardNumber: 'card.number', cardHolderName: '1-holder', cardCvv: 'cvv-2', cardExpirationDate: 'exp:date' }}
+  `(
+    'should collect the card by field key whatever the container names: $containers.cardNumber',
+    ({ containers }) => {
+      vi.mocked(document.getElementById).mockRestore()
+
+      const fields = Object.fromEntries(
+        Object.entries(containers as Record<string, string>).map(
+          ([fieldKey, container]) => {
+            const element = document.createElement('div')
+            element.id = container
+            document.body.appendChild(element)
+            return [fieldKey, { container }]
+          },
+        ),
+      )
+
+      const options = {
+        ...configurationsSDK.options,
+        config: { ...configurationsSDK.options.config, fields },
+      } as any
+
+      listener(options, events as any)
+
+      const messageHandler = addEventListenerSpy.mock.calls[0][1]
+
+      for (const [fieldKey, container] of Object.entries(
+        containers as Record<string, string>,
+      )) {
+        const event = handleCreateMockEvent(
+          Event.UpdateCardValues,
+          URL_HOSTED_FIELD_PROD,
+        )
+        event.data.data = {
+          field: container,
+          value: `cifrado-${fieldKey}`,
+        } as any
+        messageHandler(event)
+      }
+
+      expect(
+        JSON.parse(
+          sessionStorage.getItem(`malga-card-${containers.cardNumber}`) || '{}',
+        ),
+      ).toEqual({
+        cardNumber: 'cifrado-cardNumber',
+        cardHolderName: 'cifrado-cardHolderName',
+        cardCvv: 'cifrado-cardCvv',
+        cardExpirationDate: 'cifrado-cardExpirationDate',
+      })
+
+      document.body.innerHTML = ''
+    },
+  )
 })
