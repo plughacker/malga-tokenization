@@ -84,7 +84,11 @@ const eventHandlers: { [key: string]: EventHandler<any> } = {
   [Event.UpdateCardValues]: handleEventUpdateCardValues,
 }
 
-export function listener(options: MalgaOptions, events: Events) {
+/**
+ * Escuta as mensagens dos iframes desta instância. Devolve a função que remove
+ * o listener da window.
+ */
+export function listener(options: MalgaOptions, events: Events): () => void {
   const { debug, sandbox } = options
   const context: ListenerContext = {
     fieldKeys: new Map(
@@ -97,7 +101,7 @@ export function listener(options: MalgaOptions, events: Events) {
   }
   const windowMessage = new EventListener(window.parent)
 
-  windowMessage.listener('message', (event: MessageEvent<any>) => {
+  const messageHandler = (event: MessageEvent<any>) => {
     const origin = gettingOriginEvent(debug, sandbox)
 
     if (event.origin !== origin) {
@@ -123,5 +127,9 @@ export function listener(options: MalgaOptions, events: Events) {
     } catch (error) {
       console.error('Error handling message event:', error)
     }
-  })
+  }
+
+  windowMessage.listener('message', messageHandler)
+
+  return () => windowMessage.remove('message', messageHandler)
 }

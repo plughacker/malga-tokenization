@@ -16,6 +16,14 @@ import {
   URL_HOSTED_FIELD_SANDBOX,
 } from 'src/constants'
 
+const STORAGE_KEY = 'malga-card-card-number'
+const COLLECTED_CARD = {
+  cardNumber: 'cifrado-numero',
+  cardHolderName: 'cifrado-titular',
+  cardExpirationDate: 'cifrado-validade',
+  cardCvv: 'cifrado-cvv',
+}
+
 describe('tokenize', () => {
   let iframe: HTMLIFrameElement
   let contentWindowMock: Window
@@ -29,11 +37,13 @@ describe('tokenize', () => {
     } as unknown as Window
 
     iframe = handleSetupIframeInDOM('card-number', contentWindowMock)
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(COLLECTED_CARD))
   })
 
   afterEach(() => {
     vi.clearAllMocks()
     handleRemoveIframe(iframe)
+    sessionStorage.clear()
   })
 
   test.each`
@@ -316,6 +326,77 @@ describe('tokenize', () => {
 
   test('should reject when the card number iframe is not found', async () => {
     handleRemoveIframe(iframe)
+
+    await expect(
+      new Tokenize(configSDKEachEnvironment(false, false), events).handle(),
+    ).rejects.toThrow('Card number iframe not found, cannot tokenize')
+  })
+
+  test('should not send anything when no field was filled, naming every field', async () => {
+    sessionStorage.removeItem(STORAGE_KEY)
+
+    const result = await new Tokenize(configurationsSDK, events).handle()
+
+    expect(result).toEqual({
+      tokenId: '',
+      error: {
+        type: 'invalid_request_error',
+        code: 0,
+        message: expect.stringContaining('Missing card data'),
+        details: [
+          'cardNumber',
+          'cardHolderName',
+          'cardExpirationDate',
+          'cardCvv',
+        ],
+      },
+    })
+    expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+    expect(events.emit).not.toHaveBeenCalled()
+  })
+
+  test('should name only the missing fields when the card is partially filled', async () => {
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...COLLECTED_CARD,
+        cardCvv: '',
+        cardHolderName: undefined,
+      }),
+    )
+
+    const result = await new Tokenize(configurationsSDK, events).handle()
+
+    expect(result.error.details).toEqual(['cardHolderName', 'cardCvv'])
+    expect(result.error.message).toContain('cardHolderName, cardCvv')
+    expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+  })
+
+  test('should only require the fields configured in the instance', async () => {
+    const fields: Partial<typeof configurationsSDK.options.config.fields> = {
+      ...configurationsSDK.options.config.fields,
+    }
+    delete fields.cardHolderName
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...COLLECTED_CARD, cardHolderName: '' }),
+    )
+    const configurations = {
+      ...configurationsSDK,
+      options: {
+        ...configurationsSDK.options,
+        config: { ...configurationsSDK.options.config, fields },
+      },
+    } as typeof configurationsSDK
+
+    new Tokenize(configurations, events).handle()
+
+    expect(contentWindowMock.postMessage).toHaveBeenCalled()
+  })
+
+  test('should still reject when the card number iframe is not found, before checking the fields', async () => {
+    handleRemoveIframe(iframe)
+    sessionStorage.removeItem(STORAGE_KEY)
 
     await expect(
       new Tokenize(configSDKEachEnvironment(false, false), events).handle(),

@@ -128,11 +128,31 @@ For more details on the implementation, you can access our documentation by [cli
 
 `loading` is `true` when a `tokenize()` starts and `false` when it finishes. If the card number iframe does not answer within 30 seconds, `tokenize()` resolves with `{ tokenId: '', error: { type: 'timeout', code: 0, message } }` and `loading` goes back to `false`.
 
+### Missing card data
+
+Before sending anything, `tokenize()` checks that every field configured in `config.fields` has a value. If any is empty, it resolves right away, without a request and without `loading`, with `{ tokenId: '', error: { type: 'invalid_request_error', code: 0, message, details } }`, where `details` lists the missing fields (`['cardCvv', 'cardExpirationDate']`). Fields you didn't configure are not required.
+
 ### Containers and more than one card
 
 - A `container` can be any element `id` (`card-number`, `numero`, `card.number`...). The collected data is keyed by the field (`cardNumber`, `cardCvv`...), never by the container name.
 - To render two or more cards on the same page, create one `MalgaTokenization` per card, each one with its own containers. A container `id` must never repeat on the page.
 - Each instance keeps its collected card in `sessionStorage` under `malga-card-<cardNumber container>` (it was `malga-card` before). Only relevant if you read that key directly.
+- Two live instances can't share a container, and one instance can't use the same container for two fields. The constructor throws before rendering anything, naming the container: `ContainerInUseError` or `DuplicatedContainerError`. Call `destroy()` on the old instance first.
+
+### Destroying an instance
+
+`destroy()` undoes everything the constructor set up: it removes the iframes from the containers (and the classes the SDK added to them), stops waiting for containers that aren't in the DOM yet, removes the message listener and the `on()` handlers, clears the collected card from `sessionStorage` and frees the containers for a new instance. After it, `tokenize()` throws. Calling it more than once is safe.
+
+Call it whenever the checkout unmounts. Without it, mounting the screen again stacks a second set of iframes inside the same containers and keeps the old listener alive.
+
+```js
+// React
+useEffect(() => {
+  const malgaTokenization = new MalgaTokenization({ apiKey, clientId, options })
+
+  return () => malgaTokenization.destroy()
+}, [])
+```
 
 ## Examples
 
