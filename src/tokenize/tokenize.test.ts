@@ -373,8 +373,10 @@ describe('tokenize', () => {
   })
 
   test('should only require the fields configured in the instance', async () => {
-    const { cardHolderName: _holder, ...fields } =
-      configurationsSDK.options.config.fields
+    const fields: Partial<typeof configurationsSDK.options.config.fields> = {
+      ...configurationsSDK.options.config.fields,
+    }
+    delete fields.cardHolderName
     sessionStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ ...COLLECTED_CARD, cardHolderName: '' }),
