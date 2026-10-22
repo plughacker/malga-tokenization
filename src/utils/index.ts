@@ -1,4 +1,5 @@
 export * from './observer'
+export * from './registry'
 export * from './parsedString'
 export * from './origin'
 export * from './requestId'

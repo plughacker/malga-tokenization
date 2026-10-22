@@ -3,7 +3,7 @@ import type {
   MalgaInputFieldConfigurations,
   MalgaOptions,
 } from 'src/interfaces'
-import { create } from './create'
+import { create, removeIframe } from './create'
 import { Event } from 'src/enums'
 
 function validateConfig(config: MalgaInputFieldConfigurations): boolean {
@@ -47,12 +47,17 @@ function onLoadIframeField(
   )
 }
 
-export function loaded(options: MalgaOptions) {
+/**
+ * Cria um iframe por campo. Devolve a função que desfaz isso: tira os iframes
+ * do DOM e cancela a espera pelos containers que ainda não existem.
+ */
+export function loaded(options: MalgaOptions): () => void {
   if (!validateConfig(options.config)) {
-    return
+    return () => {}
   }
 
   const fields = Object.keys(options.config.fields)
+  const iframes: HTMLIFrameElement[] = []
 
   fields.forEach((field) => {
     const fieldConfig =
@@ -64,6 +69,14 @@ export function loaded(options: MalgaOptions) {
       return
     }
 
+    iframes.push(iframe)
     iframe.onload = () => onLoadIframeField(field, iframe, fieldConfig, options)
   })
+
+  return () => {
+    for (const iframe of iframes) {
+      iframe.onload = null
+      removeIframe(iframe)
+    }
+  }
 }
