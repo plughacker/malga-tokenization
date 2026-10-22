@@ -1,9 +1,13 @@
 import { Event } from 'src/enums'
 import { EventListener } from 'src/events'
 import type { Events } from 'src/events'
-import { submit } from 'src/iframes'
+import { getCardNumberIframe, submit } from 'src/iframes'
 import { MalgaConfigurations, MalgaPayloadResponse } from 'src/interfaces'
-import { generateRequestId, gettingOriginEvent } from 'src/utils'
+import {
+  generateRequestId,
+  getMissingCardFields,
+  gettingOriginEvent,
+} from 'src/utils'
 
 interface MalgaResponse {
   eventType: Event
@@ -30,6 +34,26 @@ export class Tokenize {
   public async handle(): Promise<MalgaPayloadResponse> {
     if (!this.configurations) {
       throw new Error('Configurations are required')
+    }
+
+    if (!getCardNumberIframe(this.configurations)?.contentWindow) {
+      throw new Error('Card number iframe not found, cannot tokenize')
+    }
+
+    // Sem os dados de algum campo configurado, a API receberia um payload
+    // incompleto e devolveria um erro genérico. Aqui o erro nomeia o que falta,
+    // sem requisição.
+    const missingFields = getMissingCardFields(this.configurations.options)
+    if (missingFields.length > 0) {
+      return {
+        tokenId: '',
+        error: {
+          type: 'invalid_request_error',
+          code: 0,
+          message: `Missing card data: ${missingFields.join(', ')}. Fill in every field before tokenizing.`,
+          details: missingFields,
+        },
+      }
     }
 
     const requestId = generateRequestId()

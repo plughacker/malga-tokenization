@@ -128,6 +128,10 @@ For more details on the implementation, you can access our documentation by [cli
 
 `loading` is `true` when a `tokenize()` starts and `false` when it finishes. If the card number iframe does not answer within 30 seconds, `tokenize()` resolves with `{ tokenId: '', error: { type: 'timeout', code: 0, message } }` and `loading` goes back to `false`.
 
+### Missing card data
+
+Before sending anything, `tokenize()` checks that every field configured in `config.fields` has a value. If any is empty, it resolves right away, without a request and without `loading`, with `{ tokenId: '', error: { type: 'invalid_request_error', code: 0, message, details } }`, where `details` lists the missing fields (`['cardCvv', 'cardExpirationDate']`). Fields you didn't configure are not required.
+
 ### Containers and more than one card
 
 - A `container` can be any element `id` (`card-number`, `numero`, `card.number`...). The collected data is keyed by the field (`cardNumber`, `cardCvv`...), never by the container name.
