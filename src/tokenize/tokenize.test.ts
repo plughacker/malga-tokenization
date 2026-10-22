@@ -343,7 +343,12 @@ describe('tokenize', () => {
         type: 'invalid_request_error',
         code: 0,
         message: expect.stringContaining('Missing card data'),
-        details: ['cardNumber', 'cardHolderName', 'cardExpirationDate', 'cardCvv'],
+        details: [
+          'cardNumber',
+          'cardHolderName',
+          'cardExpirationDate',
+          'cardCvv',
+        ],
       },
     })
     expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
@@ -353,7 +358,11 @@ describe('tokenize', () => {
   test('should name only the missing fields when the card is partially filled', async () => {
     sessionStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ ...COLLECTED_CARD, cardCvv: '', cardHolderName: undefined }),
+      JSON.stringify({
+        ...COLLECTED_CARD,
+        cardCvv: '',
+        cardHolderName: undefined,
+      }),
     )
 
     const result = await new Tokenize(configurationsSDK, events).handle()
