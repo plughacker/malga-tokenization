@@ -143,7 +143,9 @@ Before sending anything, `tokenize()` checks that every field configured in `con
 
 `destroy()` undoes everything the constructor set up: it removes the iframes from the containers (and the classes the SDK added to them), stops waiting for containers that aren't in the DOM yet, removes the message listener and the `on()` handlers, clears the collected card from `sessionStorage` and frees the containers for a new instance. After it, `tokenize()` throws. Calling it more than once is safe.
 
-Call it whenever the checkout unmounts. Without it, mounting the screen again stacks a second set of iframes inside the same containers and keeps the old listener alive.
+Call it whenever the checkout unmounts. Without it, mounting the screen again throws `ContainerInUseError`, because the old instance still holds the containers.
+
+> **Upgrading to 5.0.0:** in 4.x, creating a new instance on the same containers without cleanup silently stacked a second set of iframes and kept the old listener alive. Now the constructor throws `ContainerInUseError`. If your screen can mount more than once (React `useEffect` without a cleanup, `StrictMode`, navigating back to the route), call `destroy()` when it unmounts, as below.
 
 ```js
 // React
