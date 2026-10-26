@@ -1,4 +1,4 @@
-name: atualizar-hosted-fields
+name: update-hosted-fields
 
 # Abre, ou atualiza, o PR que aponta o SDK para um major novo do hosted-fields
 # (HOSTED_FIELDS_VERSION em src/constants/version.ts).
@@ -6,7 +6,7 @@ name: atualizar-hosted-fields
 # Só um major (x.0.0) abre PR: o SDK aponta sempre para /x.0.0/, e minor e
 # patch do hosted-fields são republicados ali, chegando sem release do SDK.
 #
-# Quem dispara é o malga-hosted-fields (avisar-sdk.yml), depois que produção ou
+# Quem dispara é o malga-hosted-fields (notify-sdk.yml), depois que produção ou
 # sandbox publica um major em /x.0.0/. Cada ambiente avisa depois do
 # próprio deploy, em qualquer ordem: o PR nasce em rascunho enquanto a versão
 # não estiver no ar nos dois, e fica pronto no aviso que completar o par. É a
@@ -37,7 +37,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: atualizar-hosted-fields-${{ inputs.versao }}
+  group: update-hosted-fields-${{ inputs.versao }}
   cancel-in-progress: false
 
 env:
@@ -61,7 +61,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       # As entradas vão para o nome do ramo e para o corpo do PR: só o formato
-      # que o avisar-sdk.yml envia passa.
+      # que o notify-sdk.yml envia passa.
       - name: Validar as entradas
         run: |
           [[ "$VERSAO" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Versão inválida: \"$VERSAO\"."; exit 1; }
@@ -140,7 +140,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add src/constants/version.ts ".changeset/hosted-fields-$VERSAO.md"
           git commit -m "feat: carregar o hosted-fields $VERSAO" \
-            -m "HOSTED_FIELDS_VERSION passa de $ATUAL para $VERSAO. Commit gerado pelo workflow atualizar-hosted-fields."
+            -m "HOSTED_FIELDS_VERSION passa de $ATUAL para $VERSAO. Commit gerado pelo workflow update-hosted-fields."
           git push origin "$RAMO"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
@@ -187,7 +187,7 @@ jobs:
             --jq "[.[] | select(.headRefName | startswith(\"chore/hosted-fields-\")) | select(.headRefName != \"$RAMO\") | \"#\(.number)\"] | join(\", \")")
 
           {
-            echo "Carrega o iframe do hosted-fields **$VERSAO** (\`/$VERSAO/index.html\`). Aberto pelo workflow [atualizar-hosted-fields]($ESTE_RUN), a partir $origem."
+            echo "Carrega o iframe do hosted-fields **$VERSAO** (\`/$VERSAO/index.html\`). Aberto pelo workflow [update-hosted-fields]($ESTE_RUN), a partir $origem."
             echo
             echo "## O que muda"
             echo

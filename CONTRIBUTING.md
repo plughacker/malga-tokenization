@@ -73,7 +73,7 @@ scope and avoid unrelated commits.
 
    You rarely need to bump `HOSTED_FIELDS_VERSION` by hand: when the
    hosted-fields publishes a new major in production or sandbox, it runs the
-   `atualizar-hosted-fields` workflow here, which opens (or updates) the PR
+   `update-hosted-fields` workflow here, which opens (or updates) the PR
    `chore/hosted-fields-<version>` with the bump and a `patch` changeset. The PR
    stays a draft until the version is live in both environments. It never
    rewrites an existing branch, so if the new contract needs SDK changes,
@@ -111,7 +111,7 @@ that SHA and runs the tests against the dev hosted-fields and dev API, and the r
 
 ## Hosted-fields version PRs
 
-The `atualizar-hosted-fields` workflow (`.github/workflows/atualizar-hosted-fields.yml`) is
+The `update-hosted-fields` workflow (`.github/workflows/update-hosted-fields.yml`) is
 dispatched by the `malga-hosted-fields` deploy whenever production or sandbox publishes a new
 major in `/x.0.0/`. It can also be run by hand from the Actions tab, with just the version.
 
