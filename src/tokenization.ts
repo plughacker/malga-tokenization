@@ -33,14 +33,20 @@ export class MalgaTokenization {
     // a coleta da instância que o ocupa.
     claimContainers(this, containersOf(configurations.options))
 
-    sessionStorage.removeItem(getStorageKey(configurations.options))
+    try {
+      sessionStorage.removeItem(getStorageKey(configurations.options))
 
-    this.configurations = configurations
+      this.configurations = configurations
 
-    this.teardowns.push(
-      loaded(configurations.options),
-      listener(configurations.options, this.events),
-    )
+      this.teardowns.push(loaded(configurations.options))
+      this.teardowns.push(listener(configurations.options, this.events))
+    } catch (error) {
+      // Se o construtor lança, o merchant não recebe instância para chamar
+      // destroy(): sem isso os containers ficariam reservados para sempre.
+      this.teardown()
+      releaseContainers(this)
+      throw error
+    }
   }
 
   public async tokenize() {
@@ -87,11 +93,14 @@ export class MalgaTokenization {
     if (this.destroyed) return
     this.destroyed = true
 
-    for (const teardown of this.teardowns.reverse()) teardown?.()
-    this.teardowns.length = 0
-
+    this.teardown()
     this.events.clear()
     sessionStorage.removeItem(getStorageKey(this.configurations.options))
     releaseContainers(this)
+  }
+
+  private teardown() {
+    for (const teardown of this.teardowns.reverse()) teardown?.()
+    this.teardowns.length = 0
   }
 }

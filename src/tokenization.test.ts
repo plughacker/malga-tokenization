@@ -158,6 +158,40 @@ describe('tokenization', () => {
     )
   })
 
+  test('should free the containers when the constructor throws', () => {
+    const fieldsWithoutCardNumber: Partial<
+      typeof configurationsSDK.options.config.fields
+    > = { ...configurationsSDK.options.config.fields }
+    delete fieldsWithoutCardNumber.cardNumber
+    const withoutCardNumber = {
+      ...configurationsSDK,
+      options: {
+        ...configurationsSDK.options,
+        config: {
+          ...configurationsSDK.options.config,
+          fields: fieldsWithoutCardNumber,
+        },
+      },
+    } as unknown as typeof configurationsSDK
+
+    expect(() => new MalgaTokenization(withoutCardNumber)).toThrow(TypeError)
+    expect(() => new MalgaTokenization(configurationsSDK)).not.toThrow()
+  })
+
+  test('should undo what was already set up when the constructor throws', () => {
+    const removeIframes = vi.fn()
+    vi.mocked(loaded).mockReturnValueOnce(removeIframes)
+    vi.mocked(listener).mockImplementationOnce(() => {
+      throw new Error('listener failed')
+    })
+
+    expect(() => new MalgaTokenization(configurationsSDK)).toThrow(
+      'listener failed',
+    )
+    expect(removeIframes).toHaveBeenCalledOnce()
+    expect(() => new MalgaTokenization(configurationsSDK)).not.toThrow()
+  })
+
   test('should undo everything the constructor set up on destroy', () => {
     const removeIframes = vi.fn()
     const removeListener = vi.fn()
