@@ -1,0 +1,232 @@
+name: atualizar-hosted-fields
+
+# Abre, ou atualiza, o PR que aponta o SDK para um major novo do hosted-fields
+# (HOSTED_FIELDS_VERSION em src/constants/version.ts).
+#
+# Só um major (x.0.0) abre PR: o SDK aponta sempre para /x.0.0/, e minor e
+# patch do hosted-fields são republicados ali, chegando sem release do SDK.
+#
+# Quem dispara é o malga-hosted-fields (avisar-sdk.yml), depois que produção ou
+# sandbox publica um major em /x.0.0/. Cada ambiente avisa depois do
+# próprio deploy, em qualquer ordem: o PR nasce em rascunho enquanto a versão
+# não estiver no ar nos dois, e fica pronto no aviso que completar o par. É a
+# mesma conferência do release (`check:hosted-fields`).
+#
+# Também dá para rodar à mão, só com a versão.
+
+on:
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: Major do hosted-fields publicado em /x.0.0/ (ex. 5.0.0)
+        required: true
+      ambiente:
+        description: Ambiente que publicou a versão (prod ou sandbox); vazio quando à mão
+        required: false
+        default: ''
+      run_url:
+        description: Run do deploy no malga-hosted-fields
+        required: false
+        default: ''
+      sha:
+        description: Commit do malga-hosted-fields publicado
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atualizar-hosted-fields-${{ inputs.versao }}
+  cancel-in-progress: false
+
+env:
+  HUSKY: 0
+
+jobs:
+  pr:
+    if: github.repository == 'plughacker/malga-tokenization'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      sha: ${{ steps.ramo.outputs.sha }}
+    env:
+      VERSAO: ${{ inputs.versao }}
+      AMBIENTE: ${{ inputs.ambiente }}
+      RUN_URL: ${{ inputs.run_url }}
+      ORIGEM_SHA: ${{ inputs.sha }}
+      RAMO: chore/hosted-fields-${{ inputs.versao }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      # As entradas vão para o nome do ramo e para o corpo do PR: só o formato
+      # que o avisar-sdk.yml envia passa.
+      - name: Validar as entradas
+        run: |
+          [[ "$VERSAO" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::Versão inválida: \"$VERSAO\"."; exit 1; }
+          [[ "$VERSAO" =~ ^[0-9]+\.0\.0$ ]] || {
+            echo "::error::$VERSAO não é um major (x.0.0): só um major abre PR no SDK. Minor e patch são republicados em /${VERSAO%%.*}.0.0/, que o SDK já carrega."
+            exit 1
+          }
+          [ -z "$AMBIENTE" ] || [[ "$AMBIENTE" =~ ^(prod|sandbox)$ ]] || { echo "::error::Ambiente inválido: \"$AMBIENTE\"."; exit 1; }
+          [ -z "$RUN_URL" ] || [[ "$RUN_URL" =~ ^https://github\.com/plughacker/malga-hosted-fields/actions/runs/[0-9]+$ ]] || { echo "::error::run_url inválido: \"$RUN_URL\"."; exit 1; }
+          [ -z "$ORIGEM_SHA" ] || [[ "$ORIGEM_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::sha inválido: \"$ORIGEM_SHA\"."; exit 1; }
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # criar: o ramo não existe, nasce da main com a troca da constante.
+      # atualizar: o ramo já existe; os commits dele não são tocados (alguém pode
+      # ter adaptado o SDK a um contrato novo), só o corpo e o rascunho do PR.
+      # nada: a main já carrega esta versão ou uma mais nova.
+      - name: Ler o estado
+        id: estado
+        run: |
+          atual=$(sed -nE "s/.*HOSTED_FIELDS_VERSION = '([^']+)'.*/\1/p" src/constants/version.ts)
+          if [ -z "$atual" ]; then
+            echo "::error file=src/constants/version.ts::HOSTED_FIELDS_VERSION não encontrado."
+            exit 1
+          fi
+          echo "atual=$atual" >> "$GITHUB_OUTPUT"
+          mais_nova=$(printf '%s\n%s\n' "$atual" "$VERSAO" | sort -V | tail -n1)
+          if [ "$atual" = "$VERSAO" ] || [ "$mais_nova" = "$atual" ]; then
+            echo "::notice::A main já carrega o hosted-fields $atual; nada a fazer para $VERSAO."
+            echo "acao=nada" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --heads origin "$RAMO" > /dev/null; then
+            echo "acao=atualizar" >> "$GITHUB_OUTPUT"
+          else
+            echo "acao=criar" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        if: steps.estado.outputs.acao == 'criar'
+        run: pnpm install --frozen-lockfile
+
+      - name: Preparar o ramo
+        id: ramo
+        if: steps.estado.outputs.acao != 'nada'
+        env:
+          ACAO: ${{ steps.estado.outputs.acao }}
+          ATUAL: ${{ steps.estado.outputs.atual }}
+        run: |
+          if [ "$ACAO" = atualizar ]; then
+            git switch "$RAMO"
+            exit 0
+          fi
+          git switch -c "$RAMO"
+          sed -i -E "s/(HOSTED_FIELDS_VERSION = ')[^']+'/\1$VERSAO'/" src/constants/version.ts
+          grep -q "HOSTED_FIELDS_VERSION = '$VERSAO'" src/constants/version.ts
+          # patch, como nos PRs feitos à mão; quem revisa ajusta se o contrato
+          # novo exigir mudança visível no SDK.
+          cat > ".changeset/hosted-fields-$VERSAO.md" <<EOF
+          ---
+          '@malga/tokenization': patch
+          ---
+
+          load the hosted-fields iframe from version $VERSAO (/$VERSAO/index.html)
+          EOF
+          pnpm test:ci
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/constants/version.ts ".changeset/hosted-fields-$VERSAO.md"
+          git commit -m "feat: carregar o hosted-fields $VERSAO" \
+            -m "HOSTED_FIELDS_VERSION passa de $ATUAL para $VERSAO. Commit gerado pelo workflow atualizar-hosted-fields."
+          git push origin "$RAMO"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      # Por ambiente, para o corpo do PR dizer qual falta.
+      - name: Conferir os ambientes
+        id: ambientes
+        if: steps.estado.outputs.acao != 'nada'
+        run: |
+          pronto=true
+          : > ambientes.md
+          for url in https://hosted-fields.malga.io https://hosted-fields-sandbox.malga.io; do
+            if saida=$(node scripts/check-hosted-fields.js "$url" 2>&1); then
+              echo "- [x] \`$url/$VERSAO/index.html\`" >> ambientes.md
+            else
+              pronto=false
+              detalhe=$(printf '%s\n' "$saida" | sed -n 's/^  - [^ ]*: //p' | head -n1)
+              echo "- [ ] \`$url/$VERSAO/index.html\`: ${detalhe:-não respondeu}" >> ambientes.md
+            fi
+          done
+          cat ambientes.md
+          echo "pronto=$pronto" >> "$GITHUB_OUTPUT"
+
+      - name: Abrir ou atualizar o PR
+        if: steps.estado.outputs.acao != 'nada'
+        env:
+          ATUAL: ${{ steps.estado.outputs.atual }}
+          PRONTO: ${{ steps.ambientes.outputs.pronto }}
+          ESTE_RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -n "$AMBIENTE" ]; then
+            nome_ambiente=$([ "$AMBIENTE" = prod ] && echo produção || echo sandbox)
+            origem="do deploy de $nome_ambiente do malga-hosted-fields"
+            [ -n "$RUN_URL" ] && origem="$origem ([run]($RUN_URL))"
+            [ -n "$ORIGEM_SHA" ] && origem="$origem, commit plughacker/malga-hosted-fields@$ORIGEM_SHA"
+          else
+            origem="de um disparo manual"
+          fi
+          if [ "$PRONTO" = true ]; then
+            situacao="**Pronto para o release:** \`/$VERSAO/\` está no ar em produção e sandbox."
+          else
+            situacao="**Rascunho até \`/$VERSAO/\` estar no ar em produção e sandbox.** O release recusaria o SDK antes disso (\`check:hosted-fields\`). O aviso do próximo deploy atualiza esta lista e marca o PR como pronto."
+          fi
+          outros=$(gh pr list --state open --json number,headRefName \
+            --jq "[.[] | select(.headRefName | startswith(\"chore/hosted-fields-\")) | select(.headRefName != \"$RAMO\") | \"#\(.number)\"] | join(\", \")")
+
+          {
+            echo "Carrega o iframe do hosted-fields **$VERSAO** (\`/$VERSAO/index.html\`). Aberto pelo workflow [atualizar-hosted-fields]($ESTE_RUN), a partir $origem."
+            echo
+            echo "## O que muda"
+            echo
+            echo "\`HOSTED_FIELDS_VERSION\` passa de \`$ATUAL\` para \`$VERSAO\`, com changeset \`patch\`."
+            echo
+            echo "Um major do hosted-fields traz contrato novo. Se o SDK precisar mudar para falar com a $VERSAO, adapte-o neste ramo antes do merge, e ajuste o tipo do changeset se a mudança for visível para quem usa o SDK: o workflow não reescreve commits de um ramo que já existe. Minors e patches deste major chegam depois sem PR, republicados em \`/$VERSAO/\`."
+            [ -n "$outros" ] && { echo; echo "Outros PRs de versão do hosted-fields abertos: $outros."; }
+            echo
+            echo "## Ambientes"
+            echo
+            echo "$situacao"
+            echo
+            cat ambientes.md
+            echo
+            echo "## Testes"
+            echo
+            echo "\`pnpm test:ci\` rodou no workflow antes do push. Um PR aberto pelo \`GITHUB_TOKEN\` não dispara os checks; o e2e deste commit roda no próprio [run]($ESTE_RUN). Para tê-lo como check do PR, feche e reabra o PR."
+          } > corpo.md
+
+          numero=$(gh pr list --head "$RAMO" --state open --json number --jq '.[0].number // empty')
+          if [ -z "$numero" ]; then
+            rascunho=()
+            [ "$PRONTO" = true ] || rascunho=(--draft)
+            gh pr create --base main --head "$RAMO" "${rascunho[@]}" \
+              --title "feat: carregar o hosted-fields $VERSAO" --body-file corpo.md
+          else
+            gh pr edit "$numero" --body-file corpo.md
+            if [ "$PRONTO" = true ] && [ "$(gh pr view "$numero" --json isDraft --jq .isDraft)" = true ]; then
+              gh pr ready "$numero"
+            fi
+            echo "PR #$numero atualizado."
+          fi
+
+  # O push do GITHUB_TOKEN não dispara o e2e do PR: roda aqui, no commit criado.
+  e2e:
+    needs: pr
+    if: needs.pr.outputs.sha != ''
+    uses: ./.github/workflows/e2e.yml
+    with:
+      sha: ${{ needs.pr.outputs.sha }}
+    secrets:
+      E2E_CLIENT_TOKEN: ${{ secrets.E2E_CLIENT_TOKEN }}

@@ -65,8 +65,21 @@ scope and avoid unrelated commits.
 
    The release only publishes to npm if the hosted-fields version in
    `src/constants/version.ts` (`HOSTED_FIELDS_VERSION`) is already live in
-   production and sandbox (`pnpm check:hosted-fields`). Deploy the hosted-fields
+   production and sandbox (`pnpm check:hosted-fields`). `HOSTED_FIELDS_VERSION`
+   is always a major (`x.0.0`): the hosted-fields republishes its minors and
+   patches in `/x.0.0/`, so the check accepts a newer build of the same major
+   there, never another major or an older one. Deploy the hosted-fields
    first; if the release job fails on this check, re-run it after the deploy.
+
+   You rarely need to bump `HOSTED_FIELDS_VERSION` by hand: when the
+   hosted-fields publishes a new major in production or sandbox, it runs the
+   `atualizar-hosted-fields` workflow here, which opens (or updates) the PR
+   `chore/hosted-fields-<version>` with the bump and a `patch` changeset. The PR
+   stays a draft until the version is live in both environments. It never
+   rewrites an existing branch, so if the new contract needs SDK changes,
+   make them on that branch before merging, and adjust the changeset type if
+   they are visible to SDK users. See
+   [Hosted-fields version PRs](#hosted-fields-version-prs).
 
    ```bash
    # Push the branch for your new feature
@@ -95,3 +108,22 @@ that SHA and runs the tests against the dev hosted-fields and dev API, and the r
   with the reviewed SHA.
 - Required secret: `E2E_CLIENT_TOKEN` (GitHub App or fine-grained token with `Actions: read & write`
   on `client-hosted-fields` only).
+
+## Hosted-fields version PRs
+
+The `atualizar-hosted-fields` workflow (`.github/workflows/atualizar-hosted-fields.yml`) is
+dispatched by the `malga-hosted-fields` deploy whenever production or sandbox publishes a new
+major in `/x.0.0/`. It can also be run by hand from the Actions tab, with just the version.
+
+- Only a major (`x.0.0`) opens a PR; any other version fails with a message. Minors and patches are
+  republished in `/x.0.0/`, which the SDK already loads, so they reach merchants without an SDK
+  release.
+
+- Each run checks both environments with `scripts/check-hosted-fields.js`, the same check as the
+  release. The first notice opens the PR as a draft; the one that completes the pair marks it ready.
+- The PR is opened with `GITHUB_TOKEN`, so it does not trigger the `tests` and `e2e` checks. The
+  workflow runs `pnpm test:ci` before pushing and runs the `e2e` workflow on the new commit itself.
+  To get `e2e / client` as a PR check, close and reopen the PR.
+- No new secret here: it uses `GITHUB_TOKEN` (`contents` and `pull-requests: write`) and the existing
+  `E2E_CLIENT_TOKEN`. The dispatch needs `TOKENIZATION_DISPATCH_TOKEN` in `malga-hosted-fields`
+  (GitHub App or fine-grained token with `Actions: read & write` on `malga-tokenization` only).
