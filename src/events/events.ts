@@ -52,6 +52,11 @@ export class Events {
     }
   }
 
+  /** Remove todos os handlers registrados com on(). */
+  public clear() {
+    this.events = {}
+  }
+
   public emit<T extends keyof EventPayloadReturnObject>(
     eventType: T,
     data: EventPayloadReturnObject[T],

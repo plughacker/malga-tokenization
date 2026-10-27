@@ -3,15 +3,22 @@ import { Event } from 'src/enums'
 import { EventPostMessage } from 'src/events'
 import { getStorageKey, gettingOriginEvent } from 'src/utils'
 
+/** O iframe do número do cartão desta instância, se estiver na página. */
+export function getCardNumberIframe(
+  configurations: MalgaConfigurations,
+): HTMLIFrameElement | undefined {
+  const container = configurations.options.config.fields.cardNumber.container
+
+  return Array.from(document.getElementsByName(container)).find(
+    (element) => element instanceof HTMLIFrameElement,
+  ) as HTMLIFrameElement | undefined
+}
+
 export function submit(
   configurations: MalgaConfigurations,
   requestId?: string,
 ): Window | undefined {
-  const container = configurations.options.config.fields.cardNumber.container
-  const iframeCardNumber = Array.from(
-    document.getElementsByName(container),
-  ).find((element) => element instanceof HTMLIFrameElement) as
-    HTMLIFrameElement | undefined
+  const iframeCardNumber = getCardNumberIframe(configurations)
 
   if (!iframeCardNumber || !iframeCardNumber.contentWindow) {
     console.error(
