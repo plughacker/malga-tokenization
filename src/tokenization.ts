@@ -29,8 +29,6 @@ export class MalgaTokenization {
       )
     }
 
-    // Antes de qualquer efeito: um container já ocupado falha aqui, sem apagar
-    // a coleta da instância que o ocupa.
     claimContainers(this, containersOf(configurations.options))
 
     try {
