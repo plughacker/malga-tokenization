@@ -22,6 +22,17 @@ export class MalgaTokenization {
   private readonly teardowns: Array<(() => void) | undefined> = []
   private destroyed = false
 
+  /**
+   * Renders the card fields (hosted fields) in the configured containers.
+   *
+   * `configurations.apiKey`:
+   *
+   * Use a sub-key created by your backend, never your secret key.
+   * - Create it with POST /v1/auth using only the ["tokens"] scope.
+   * - Use a short expiration (e.g. expires: 900) and one sub-key per checkout session.
+   * - Don't use expires: 0 and don't hardcode the key in your HTML or front-end bundle.
+   * Reference: https://docs.malga.io/api-reference/client-token/criar-nova-chave-publica-para-uso-no-client-side
+   */
   constructor(configurations: MalgaConfigurations) {
     if (!configurations.apiKey || !configurations.clientId) {
       console.error(
@@ -47,6 +58,22 @@ export class MalgaTokenization {
     }
   }
 
+  /**
+   * Tokenizes the card typed in the fields and resolves with `{ tokenId, error }`.
+   * Send the `tokenId` to your backend to create the charge with your secret key.
+   *
+   * Tokenization uses the `apiKey` passed to the constructor. Once its `expires`
+   * time is over, the API rejects the sub-key: call `destroy()`, fetch a new
+   * sub-key from your backend and create a new instance.
+   *
+   * `apiKey`:
+   *
+   * Use a sub-key created by your backend, never your secret key.
+   * - Create it with POST /v1/auth using only the ["tokens"] scope.
+   * - Use a short expiration (e.g. expires: 900) and one sub-key per checkout session.
+   * - Don't use expires: 0 and don't hardcode the key in your HTML or front-end bundle.
+   * Reference: https://docs.malga.io/api-reference/client-token/criar-nova-chave-publica-para-uso-no-client-side
+   */
   public async tokenize() {
     if (this.destroyed) {
       throw new Error('MalgaTokenization: this instance was destroyed')
