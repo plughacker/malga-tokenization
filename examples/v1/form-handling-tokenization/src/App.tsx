@@ -2,7 +2,15 @@ import { MalgaTokenization } from '@malga/tokenization'
 import { useEffect, useRef } from 'react'
 
 const malgaTokenization = new MalgaTokenization({
-  apiKey: '<YOUR_API_KEY>',
+  /**
+   * Use a sub-key created by your backend, never your secret key.
+   * - Create it with POST /v1/auth using only the ["tokens"] scope.
+   * - Use a short expiration (e.g. expires: 900) and one sub-key per checkout session.
+   * - Don't use expires: 0 and don't hardcode the key in your HTML or front-end bundle.
+   * Reference: https://docs.malga.io/api-reference/client-token/criar-nova-chave-publica-para-uso-no-client-side
+   * Example with a backend creating the sub-key: examples/v2/tokenization-v2
+   */
+  apiKey: '<YOUR_PUBLIC_KEY>',
   clientId: '<YOUR_CLIENT_ID>',
   options: { sandbox: true },
 })
