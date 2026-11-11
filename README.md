@@ -145,7 +145,10 @@ const malgaTokenization = new MalgaTokenization({
 ```
 
 - `loading` is `true` while the function runs.
-- If the function throws or returns an empty value, `tokenize()` resolves right away, without sending the card, with `{ tokenId: '', error: { type: 'invalid_request_error', code: 0, message: 'Could not get the API key: ...' } }`.
+- If the function throws or returns an empty value, `tokenize()` resolves without sending the card, with `{ tokenId: '', error: { type: 'invalid_request_error', code: 0, message: 'Could not get the API key: ...' } }`.
+- If the function doesn't answer within 30 seconds, `tokenize()` resolves with `error.type: 'timeout'`. A key returned after that is ignored.
+- Once the key arrives, the SDK checks the card fields again. If one was cleared in the meantime, it resolves with the missing card data error and sends nothing.
+- If the instance is destroyed, or its card fields are replaced by another instance, while the function runs, `tokenize()` rejects and sends nothing.
 - The function is called on every `tokenize()`. If you want to reuse a key, cache it in your function.
 
 ### Missing card data

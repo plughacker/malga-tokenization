@@ -1,7 +1,11 @@
 import { Event } from 'src/enums'
 import type { Events } from 'src/events'
 import { submit } from 'src/iframes'
-import { TOKENIZE_TIMEOUT_MS, Tokenize } from './../tokenize/tokenize'
+import {
+  API_KEY_TIMEOUT_MS,
+  TOKENIZE_TIMEOUT_MS,
+  Tokenize,
+} from './../tokenize/tokenize'
 import * as iframesModule from 'src/iframes'
 import {
   handleSetupIframeInDOM,
@@ -539,6 +543,81 @@ describe('tokenize', () => {
 
       expect(response.error.type).toBe('invalid_request_error')
       expect(apiKeyProvider).not.toHaveBeenCalled()
+    })
+
+    test('should stop loading when sending the card throws', async () => {
+      vi.mocked(contentWindowMock.postMessage).mockImplementation(() => {
+        throw new Error('postMessage failed')
+      })
+
+      await expect(
+        new Tokenize(
+          withApiKey(async () => 'sub-key'),
+          events,
+        ).handle(),
+      ).rejects.toThrow('postMessage failed')
+      expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+    })
+
+    test('should reject without sending the card when the instance is no longer active after the key is fetched', async () => {
+      let resolveApiKey!: (apiKey: string) => void
+      let isActive = true
+      const promise = new Tokenize(
+        withApiKey(
+          () => new Promise<string>((resolve) => (resolveApiKey = resolve)),
+        ),
+        events,
+        () => isActive,
+      ).handle()
+      await flushPromises()
+
+      isActive = false
+      resolveApiKey('sub-key')
+
+      await expect(promise).rejects.toThrow(
+        'the instance was destroyed or its card fields were replaced',
+      )
+      expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+      expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+    })
+
+    test('should resolve with a timeout error when the function never answers, ignoring a late key', async () => {
+      vi.useFakeTimers()
+
+      try {
+        let resolveApiKey!: (apiKey: string) => void
+        const promise = new Tokenize(
+          withApiKey(
+            () => new Promise<string>((resolve) => (resolveApiKey = resolve)),
+          ),
+          events,
+        ).handle()
+
+        await vi.advanceTimersByTimeAsync(API_KEY_TIMEOUT_MS)
+
+        expect(await promise).toEqual({
+          tokenId: '',
+          error: {
+            type: 'timeout',
+            code: 0,
+            message: `Could not get the API key: no answer from the apiKey function after ${API_KEY_TIMEOUT_MS}ms`,
+          },
+        })
+        expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+          isLoading: false,
+        })
+
+        resolveApiKey('late-sub-key')
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     test('should reject and stop loading when the iframe leaves the page while the key is fetched', async () => {

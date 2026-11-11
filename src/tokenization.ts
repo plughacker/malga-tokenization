@@ -52,7 +52,11 @@ export class MalgaTokenization {
       throw new Error('MalgaTokenization: this instance was destroyed')
     }
 
-    const tokenize = new Tokenize(this.configurations, this.events)
+    const tokenize = new Tokenize(
+      this.configurations,
+      this.events,
+      () => !this.destroyed,
+    )
     return tokenize.handle()
   }
 
