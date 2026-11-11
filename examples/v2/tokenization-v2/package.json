@@ -1,9 +1,10 @@
 {
-  "name": "tokenization-v1",
+  "name": "tokenization-v2",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:3001",
   "dependencies": {
-    "@malga/tokenization": "^1.0.0",
+    "@malga/tokenization": "^5.0.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
@@ -19,6 +20,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "server": "node server.mjs",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

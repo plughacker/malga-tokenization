@@ -1,56 +1,105 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import './App.css'
 import { MalgaTokenization } from '@malga/tokenization'
 
-const malgaTokenization = new MalgaTokenization({
-  apiKey: 'API_KEY',
-  clientId: 'CLIENT_ID',
-  options: {
-    config: {
-      fields: {
-        cardNumber: {
-          container: 'card-number',
-          placeholder: '9999 9999 9999 9999',
-          type: 'text',
+interface MalgaKey {
+  publicKey: string
+  clientId: string
+}
+
+// The sub-key comes from the backend (server.mjs): tokens scope, short expiration, one per checkout session
+async function fetchMalgaKey(): Promise<MalgaKey> {
+  const response = await fetch('/checkout/malga-key', { method: 'POST' })
+
+  if (!response.ok) {
+    throw new Error('Could not fetch the sub-key')
+  }
+
+  return response.json()
+}
+
+function createMalgaTokenization({ publicKey, clientId }: MalgaKey) {
+  return new MalgaTokenization({
+    apiKey: publicKey,
+    clientId,
+    options: {
+      config: {
+        fields: {
+          cardNumber: {
+            container: 'card-number',
+            placeholder: '9999 9999 9999 9999',
+            type: 'text',
+          },
+          cardHolderName: {
+            container: 'card-holder-name',
+            placeholder: 'Its a test',
+            type: 'text',
+          },
+          cardExpirationDate: {
+            container: 'card-expiration-date',
+            placeholder: 'MM/YY',
+            type: 'text',
+          },
+          cardCvv: {
+            container: 'card-cvv',
+            placeholder: '999',
+            type: 'text',
+          },
         },
-        cardHolderName: {
-          container: 'card-holder-name',
-          placeholder: 'Its a test',
-          type: 'text',
+        styles: {
+          input: {
+            color: '#000',
+            'font-size': '16px',
+          },
         },
-        cardExpirationDate: {
-          container: 'card-expiration-date',
-          placeholder: 'MM/YY',
-          type: 'text',
-        },
-        cardCvv: {
-          container: 'card-cvv',
-          placeholder: '999',
-          type: 'text',
-        },
+        preventAutofill: false,
       },
-      styles: {
-        input: {
-          color: '#000',
-          'font-size': '16px',
-        },
-      },
-      preventAutofill: false,
+      sandbox: true,
     },
-    sandbox: true,
-  },
-})
+  })
+}
 
 export default function App() {
+  const malgaTokenization = useRef<MalgaTokenization | null>(null)
+  const [isReady, setIsReady] = useState(false)
   const [tokenId, setTokenId] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    let instance: MalgaTokenization | undefined
+    let unmounted = false
+
+    fetchMalgaKey()
+      .then((malgaKey) => {
+        if (unmounted) return
+        instance = createMalgaTokenization(malgaKey)
+        malgaTokenization.current = instance
+        setIsReady(true)
+      })
+      .catch((error: Error) => setErrorMessage(error.message))
+
+    // Frees the containers on unmount (including the StrictMode second mount)
+    return () => {
+      unmounted = true
+      instance?.destroy()
+      malgaTokenization.current = null
+      setIsReady(false)
+    }
+  }, [])
 
   async function handleGetTokenId(event: FormEvent<HTMLFormElement>) {
-    const { tokenId, error } = await malgaTokenization.tokenize()
+    event.preventDefault()
 
-    if (!!error) {
-      console.log(error)
+    if (!malgaTokenization.current) return
+
+    const { tokenId, error } = await malgaTokenization.current.tokenize()
+
+    if (error) {
+      setErrorMessage(error.message)
+      return
     }
 
+    setErrorMessage('')
     setTokenId(tokenId)
   }
 
@@ -75,8 +124,11 @@ export default function App() {
             <div id="card-expiration-date" className="form-control"></div>
           </div>
         </section>
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={!isReady}>
+          Submit
+        </button>
       </form>
+      {errorMessage && <p role="alert">{errorMessage}</p>}
       {tokenId}
     </main>
   )
