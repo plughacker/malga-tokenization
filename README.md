@@ -164,7 +164,7 @@ For more details on the implementation, you can access our documentation by [cli
 
 ### Fetching the API key on demand
 
-`apiKey` also accepts a function that returns the key, sync or async. The SDK calls it on every `tokenize()`, right before sending the card data, so you can create a short-lived sub-key in your backend only when the customer submits the form. If the sub-key expires, the next `tokenize()` gets a new one, without recreating the fields or losing the typed card.
+`apiKey` also accepts a function that returns the key, sync or async. The SDK calls it on every `tokenize()`, right before sending the card data, so you can create a short-lived sub-key in your backend only when the customer submits the form. If the sub-key expires, the function can return a new one on the next `tokenize()`, without recreating the fields or losing the typed card.
 
 ```ts
 const malgaTokenization = new MalgaTokenization({
@@ -184,8 +184,8 @@ const malgaTokenization = new MalgaTokenization({
 - If the function doesn't answer within 30 seconds, `tokenize()` resolves with `error.type: 'timeout'`. A key returned after that is ignored.
 - The 30 seconds of the function and the 30 seconds of the card number iframe are counted separately, so in the worst case `tokenize()` takes up to 60 seconds to resolve.
 - Once the key arrives, the SDK checks the card fields again. If one was cleared in the meantime, it resolves with the missing card data error and sends nothing.
-- If the instance is destroyed, or its card fields are replaced by another instance, while the function runs, `tokenize()` rejects and sends nothing.
-- The function is called on every `tokenize()`. If you want to reuse a key within the same checkout session, cache it in your function and fetch a new one before its `expires` time is over. An expired sub-key is rejected by the API with `403`.
+- If the instance is destroyed, or its card fields are replaced by another instance, while the function runs, the card is not sent. When the function returns a key, `tokenize()` rejects; when it fails or times out, `tokenize()` resolves with the errors above.
+- The function is called on every `tokenize()`. To keep one sub-key per checkout session, as recommended in the [authentication docs](https://docs.malga.io/sdks/tokenization/v2/authentication), cache it in your function (or return the same sub-key from your backend route while it is valid) and fetch a new one before its `expires` time is over. An expired sub-key is rejected by the API with `403`.
 
 ### Missing card data
 
