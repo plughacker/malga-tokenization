@@ -21,6 +21,35 @@ npm install @malga/tokenization
 pnpm add @malga/tokenization
 ```
 
+### Authentication
+
+The SDK runs in the browser, so the `apiKey` you pass to it is visible to anyone who opens your checkout page. Never use your account's secret key there.
+
+1. In your backend, create a [sub-key](https://docs.malga.io/api-reference/client-token/criar-nova-chave-publica-para-uso-no-client-side) for each checkout session with `POST /v1/auth`, using only the `tokens` scope and a short expiration (`expires` is in seconds):
+
+```bash
+curl --request POST 'https://api.malga.io/v1/auth' \
+  --header 'X-Client-Id: YOUR_CLIENT_ID' \
+  --header 'X-Api-Key: YOUR_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{ "scope": ["tokens"], "expires": 900 }'
+```
+
+2. Return only the `publicKey` (and your `clientId`) to the front-end. The secret key stays on your server.
+3. In the front-end, fetch that sub-key and only then create the `MalgaTokenization` instance, passing the `publicKey` as `apiKey`.
+
+Good practices:
+
+- Use only the `tokens` scope. The SDK doesn't need anything else.
+- Use a short expiration (for example, `900`) and a new sub-key for each checkout session. Don't use `expires: 0` in the front-end: a sub-key without expiration stays valid indefinitely.
+- Don't hardcode the key in your HTML, in front-end config files or in build-time variables that end up in the bundle.
+- Protect the backend route that creates sub-keys: create them only for a valid purchase session in your system and rate limit that route.
+- The instance uses the `apiKey` passed to the constructor. When the sub-key expires, call `destroy()`, fetch a new sub-key and create a new instance.
+
+Use `https://sandbox-api.malga.io` with your sandbox credentials while testing, together with `sandbox: true`.
+
+### Usage
+
 1. Add the identification keys for each field involving card data in your form
 
 ```html
@@ -47,14 +76,19 @@ pnpm add @malga/tokenization
 </form>
 ```
 
-2. Now all you need to do is configure our SDK with your keys and call the tokenize method in your function handling the form submit
+2. Now fetch the sub-key from your backend, configure our SDK with it and call the tokenize method in your function handling the form submit
 
 ```ts
 import { MalgaTokenization } from '@malga/tokenization'
 
+// Sub-key with scope ["tokens"] and a short expiration, created by your backend for this checkout session
+const { apiKey, clientId } = await fetch('/checkout/malga-key', {
+  method: 'POST',
+}).then((response) => response.json())
+
 const malgaTokenization = new MalgaTokenization({
-  apiKey: '<YOUR_API_KEY>',
-  clientId: '<YOUR_CLIENT_ID>',
+  apiKey,
+  clientId,
   options: {
     config: {
       fields: {
@@ -122,7 +156,7 @@ async function handleSubmit(event) {
 
 3. Submit the form and see the magic happen 💳
 
-For more details on the implementation, you can access our documentation by [clicking here](https://docs.malga.io/docs/sdks/tokenization/intro).
+For more details on the implementation, you can access our documentation by [clicking here](https://docs.malga.io/sdks/tokenization/v2/intro).
 
 ### Loading and timeout
 
@@ -158,7 +192,7 @@ useEffect(() => {
 
 ## Examples
 
-If you have any doubts about the integration, you can [click here](https://github.com/plughacker/malga-tokenization/tree/main/examples) to see some examples
+If you have any doubts about the integration, you can [click here](https://github.com/plughacker/malga-tokenization/tree/main/examples) to see some examples. The [v2 example](https://github.com/plughacker/malga-tokenization/tree/main/examples/v2/tokenization-v2) includes a backend route that creates the sub-key.
 
 ## Contributing
 
