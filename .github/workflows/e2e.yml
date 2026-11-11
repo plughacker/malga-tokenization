@@ -6,14 +6,15 @@ name: e2e
 #
 # Fluxo: guarda da URL de dev -> dispara o workflow do client -> acompanha o
 # resultado. O job abaixo é o check do PR (PASS/FAIL).
+#
+# The client job runs in the `e2e` environment: it waits until a Malga member
+# approves the run, and E2E_CLIENT_TOKEN is an environment secret, only released
+# after that approval. `e2e / gate` and `e2e / client` are required checks on main.
 
 on:
+  # No paths filter: required checks must always report. The gate job decides
+  # whether the PR touches the SDK.
   pull_request:
-    paths:
-      - 'src/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - '.github/workflows/e2e.yml'
   # Para PRs de fork (sem secrets) ou reexecuções: um mantenedor informa o SHA depois de revisar o código.
   workflow_dispatch:
     inputs:
@@ -26,8 +27,9 @@ on:
         type: string
         required: true
     secrets:
+      # Not used anymore: the client job reads E2E_CLIENT_TOKEN from the `e2e` environment.
       E2E_CLIENT_TOKEN:
-        required: true
+        required: false
 
 permissions:
   contents: read
@@ -37,13 +39,49 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  gate:
+    name: e2e / gate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - name: Decide whether the e2e suite must run
+        id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+        run: |
+          files=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename')
+
+          if ! grep -Eq '^(src/|package\.json$|pnpm-lock\.yaml$|\.github/workflows/e2e\.yml$)' <<< "$files"; then
+            echo "The PR doesn't change the SDK: e2e not needed."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Fork PRs never get the e2e secrets, so they can't be merged on this check alone.
+          if [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ]; then
+            echo "::error::PRs from forks can't run the e2e suite. A maintainer must push the reviewed commits to a branch of this repository and open a PR from it."
+            exit 1
+          fi
+
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
   client:
     name: e2e / client
-    # Só roda onde há secrets: nunca em PRs de fork (e nunca via pull_request_target).
+    needs: gate
+    # On PRs it runs only when the gate asks for it. Outside PRs (workflow_dispatch/workflow_call) the gate is skipped.
     if: >-
+      !cancelled() &&
       github.repository == 'plughacker/malga-tokenization' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
+      (github.event_name != 'pull_request' || needs.gate.outputs.run == 'true')
+    # Waits for a Malga member to approve before running and releasing the secret.
+    environment: e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

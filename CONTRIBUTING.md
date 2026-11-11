@@ -102,12 +102,22 @@ dispatches the client workflow with the exact commit SHA of the PR. The client b
 that SHA and runs the tests against the dev hosted-fields and dev API, and the result becomes the
 `e2e / client` check of the PR.
 
+The suite does not start on its own. The `e2e / client` job runs in the `e2e` environment and waits
+until a Malga member approves it ("Review deployments" on the run). Every new commit pushed to the PR
+needs a new approval.
+
+- `e2e / gate` decides whether the suite is needed: only PRs that change `src/`, `package.json`,
+  `pnpm-lock.yaml` or the `e2e` workflow run it. For the others, `e2e / client` is skipped.
+- `e2e / gate` and `e2e / client` are required checks on `main`, so a PR that changes the SDK can
+  only be merged after the suite is approved and passes.
+- PRs from forks can't run the suite (no secrets), so `e2e / gate` fails for them when they change
+  the SDK. A maintainer pushes the reviewed commits to a branch of this repository and opens a PR
+  from it. The `e2e` workflow can also be run manually with a reviewed SHA.
 - Keep `URL_HOSTED_FIELD_DEV` pointing to `http://localhost:5173` only for local work; switch it
   back before opening the PR.
-- PRs from forks do not run the suite (no secrets). A maintainer can run the `e2e` workflow manually
-  with the reviewed SHA.
-- Required secret: `E2E_CLIENT_TOKEN` (GitHub App or fine-grained token with `Actions: read & write`
-  on `client-hosted-fields` only).
+- `E2E_CLIENT_TOKEN` (GitHub App or fine-grained token with `Actions: read & write` on
+  `client-hosted-fields` only) is a secret of the `e2e` environment, not of the repository, so it
+  is only available after the approval.
 
 ## Hosted-fields version PRs
 
@@ -122,8 +132,8 @@ major in `/x.0.0/`. It can also be run by hand from the Actions tab, with just t
 - Each run checks both environments with `scripts/check-hosted-fields.js`, the same check as the
   release. The first notice opens the PR as a draft; the one that completes the pair marks it ready.
 - The PR is opened with `GITHUB_TOKEN`, so it does not trigger the `tests` and `e2e` checks. The
-  workflow runs `pnpm test:ci` before pushing and runs the `e2e` workflow on the new commit itself.
-  To get `e2e / client` as a PR check, close and reopen the PR.
+  workflow runs `pnpm test:ci` before pushing and runs the `e2e` workflow on the new commit itself,
+  which also waits for approval. To get `e2e / client` as a PR check, close and reopen the PR.
 - No new secret here: it uses `GITHUB_TOKEN` (`contents` and `pull-requests: write`) and the existing
   `E2E_CLIENT_TOKEN`. The dispatch needs `TOKENIZATION_DISPATCH_TOKEN` in `malga-hosted-fields`
   (GitHub App or fine-grained token with `Actions: read & write` on `malga-tokenization` only).
