@@ -63,6 +63,16 @@ describe('tokenization', () => {
     )
   })
 
+  test('should accept a function as apiKey without showing an error', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error')
+    new MalgaTokenization({
+      ...configurationsSDK,
+      apiKey: async () => 'sub-key',
+    })
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled()
+  })
+
   test('should show an error if client ID is missing', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error')
     new MalgaTokenization({ ...configurationsSDK, clientId: '' })

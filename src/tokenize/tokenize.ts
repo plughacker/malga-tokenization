@@ -2,7 +2,11 @@ import { Event } from 'src/enums'
 import { EventListener } from 'src/events'
 import type { Events } from 'src/events'
 import { getCardNumberIframe, submit } from 'src/iframes'
-import { MalgaConfigurations, MalgaPayloadResponse } from 'src/interfaces'
+import {
+  MalgaApiKeyProvider,
+  MalgaConfigurations,
+  MalgaPayloadResponse,
+} from 'src/interfaces'
 import {
   generateRequestId,
   getMissingCardFields,
@@ -31,6 +35,32 @@ export class Tokenize {
     return origin === allowedOrigin
   }
 
+  private async resolveApiKey(
+    apiKeyProvider: MalgaApiKeyProvider,
+  ): Promise<string | MalgaPayloadResponse> {
+    const failure = (reason: string) =>
+      ({
+        tokenId: '',
+        error: {
+          type: 'invalid_request_error',
+          code: 0,
+          message: `Could not get the API key: ${reason}`,
+        },
+      }) as unknown as MalgaPayloadResponse
+
+    try {
+      const apiKey = await apiKeyProvider()
+
+      if (typeof apiKey !== 'string' || apiKey.length === 0) {
+        return failure('the apiKey function must return a non-empty string')
+      }
+
+      return apiKey
+    } catch (error) {
+      return failure(error instanceof Error ? error.message : String(error))
+    }
+  }
+
   public async handle(): Promise<MalgaPayloadResponse> {
     if (!this.configurations) {
       throw new Error('Configurations are required')
@@ -56,14 +86,36 @@ export class Tokenize {
       }
     }
 
+    let configurations = this.configurations
+    const { apiKey } = this.configurations
+    const isApiKeyProvider = typeof apiKey === 'function'
+
+    // With a provider, loading starts while the key is fetched.
+    if (isApiKeyProvider) {
+      this.events.emit(Event.Loading, { isLoading: true })
+
+      const resolvedApiKey = await this.resolveApiKey(apiKey)
+      if (typeof resolvedApiKey !== 'string') {
+        this.events.emit(Event.Loading, { isLoading: false })
+        return resolvedApiKey
+      }
+
+      configurations = { ...this.configurations, apiKey: resolvedApiKey }
+    }
+
     const requestId = generateRequestId()
-    const iframeWindow = submit(this.configurations, requestId)
+    const iframeWindow = submit(configurations, requestId)
 
     if (!iframeWindow) {
+      if (isApiKeyProvider) {
+        this.events.emit(Event.Loading, { isLoading: false })
+      }
       throw new Error('Card number iframe not found, cannot tokenize')
     }
 
-    this.events.emit(Event.Loading, { isLoading: true })
+    if (!isApiKeyProvider) {
+      this.events.emit(Event.Loading, { isLoading: true })
+    }
 
     const windowData = new EventListener(window)
 

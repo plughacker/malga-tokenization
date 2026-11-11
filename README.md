@@ -128,6 +128,26 @@ For more details on the implementation, you can access our documentation by [cli
 
 `loading` is `true` when a `tokenize()` starts and `false` when it finishes. If the card number iframe does not answer within 30 seconds, `tokenize()` resolves with `{ tokenId: '', error: { type: 'timeout', code: 0, message } }` and `loading` goes back to `false`.
 
+### Fetching the API key on demand
+
+`apiKey` also accepts a function that returns the key, sync or async. The SDK calls it on every `tokenize()`, right before sending the card data, so you can create a short-lived sub-key in your backend only when the customer submits the form. If the sub-key expires, the next `tokenize()` gets a new one, without recreating the fields or losing the typed card.
+
+```ts
+const malgaTokenization = new MalgaTokenization({
+  apiKey: async () => {
+    const response = await fetch('/checkout/malga-key', { method: 'POST' })
+    const { apiKey } = await response.json()
+    return apiKey
+  },
+  clientId: '<YOUR_CLIENT_ID>',
+  options,
+})
+```
+
+- `loading` is `true` while the function runs.
+- If the function throws or returns an empty value, `tokenize()` resolves right away, without sending the card, with `{ tokenId: '', error: { type: 'invalid_request_error', code: 0, message: 'Could not get the API key: ...' } }`.
+- The function is called on every `tokenize()`. If you want to reuse a key, cache it in your function.
+
 ### Missing card data
 
 Before sending anything, `tokenize()` checks that every field configured in `config.fields` has a value. If any is empty, it resolves right away, without a request and without `loading`, with `{ tokenId: '', error: { type: 'invalid_request_error', code: 0, message, details } }`, where `details` lists the missing fields (`['cardCvv', 'cardExpirationDate']`). Fields you didn't configure are not required.
