@@ -51,7 +51,7 @@ export class Tokenize {
         code: 0,
         message: `Could not get the API key: ${reason}`,
       },
-    } as unknown as MalgaPayloadResponse
+    }
   }
 
   private async resolveApiKey(
@@ -85,9 +85,14 @@ export class Tokenize {
 
         return apiKey
       } catch (error) {
+        // a mensagem do backend do integrador não vai no payload, só no console com debug
+        if (this.configurations.options?.debug) {
+          console.error('MalgaTokenization: the apiKey function failed', error)
+        }
+
         return this.apiKeyFailure(
           'invalid_request_error',
-          error instanceof Error ? error.message : String(error),
+          'the apiKey function threw an error',
         )
       }
     })()

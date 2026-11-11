@@ -507,13 +507,40 @@ describe('tokenize', () => {
         error: {
           type: 'invalid_request_error',
           code: 0,
-          message: 'Could not get the API key: backend unavailable',
+          message:
+            'Could not get the API key: the apiKey function threw an error',
         },
       })
       expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
       expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
         isLoading: false,
       })
+    })
+
+    test('should log the error of the function only with debug', async () => {
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined)
+      const backendError = new Error('backend unavailable')
+      const failingApiKey = () => Promise.reject(backendError)
+
+      await new Tokenize(withApiKey(failingApiKey), events).handle()
+      expect(consoleError).not.toHaveBeenCalled()
+
+      const response = await new Tokenize(
+        {
+          ...configSDKEachEnvironment(true, false),
+          apiKey: failingApiKey,
+        },
+        events,
+      ).handle()
+      expect(consoleError).toHaveBeenCalledWith(
+        'MalgaTokenization: the apiKey function failed',
+        backendError,
+      )
+      expect(response.error.message).not.toContain('backend unavailable')
+
+      consoleError.mockRestore()
     })
 
     test('should resolve with an error when the function returns an empty key', async () => {

@@ -36,7 +36,7 @@ function pendingApiKey() {
   return { apiKey, resolve: (key: string) => resolveApiKey(key) }
 }
 
-const submittedMessages = (postMessage: ReturnType<typeof vi.spyOn>) =>
+const submittedMessages = (postMessage: { mock: { calls: any[][] } }) =>
   postMessage.mock.calls.filter(
     ([message]: any[]) => message.eventType === Event.Submit,
   )

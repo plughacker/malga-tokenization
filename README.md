@@ -180,8 +180,9 @@ const malgaTokenization = new MalgaTokenization({
 ```
 
 - `loading` is `true` while the function runs.
-- If the function throws or returns an empty value, `tokenize()` resolves without sending the card, with `{ tokenId: '', error: { type: 'invalid_request_error', code: 0, message: 'Could not get the API key: ...' } }`.
+- If the function throws or returns an empty value, `tokenize()` resolves without sending the card, with `{ tokenId: '', error: { type: 'invalid_request_error', code: 0, message: 'Could not get the API key: ...' } }`. The message doesn't include the error thrown by your function, so details of your backend don't reach the customer. With `debug: true`, that error is logged in the console.
 - If the function doesn't answer within 30 seconds, `tokenize()` resolves with `error.type: 'timeout'`. A key returned after that is ignored.
+- The 30 seconds of the function and the 30 seconds of the card number iframe are counted separately, so in the worst case `tokenize()` takes up to 60 seconds to resolve.
 - Once the key arrives, the SDK checks the card fields again. If one was cleared in the meantime, it resolves with the missing card data error and sends nothing.
 - If the instance is destroyed, or its card fields are replaced by another instance, while the function runs, `tokenize()` rejects and sends nothing.
 - The function is called on every `tokenize()`. If you want to reuse a key within the same checkout session, cache it in your function and fetch a new one before its `expires` time is over. An expired sub-key is rejected by the API with `403`.
