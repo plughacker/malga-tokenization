@@ -29,7 +29,7 @@ async function createTokensSubKey() {
   }
 
   const { publicKey, clientId } = await response.json()
-  return { apiKey: publicKey, clientId }
+  return { publicKey, clientId }
 }
 
 function sendJson(response, status, body) {

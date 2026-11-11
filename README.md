@@ -82,12 +82,12 @@ Use `https://sandbox-api.malga.io` with your sandbox credentials while testing, 
 import { MalgaTokenization } from '@malga/tokenization'
 
 // Sub-key with scope ["tokens"] and a short expiration, created by your backend for this checkout session
-const { apiKey, clientId } = await fetch('/checkout/malga-key', {
+const { publicKey, clientId } = await fetch('/checkout/malga-key', {
   method: 'POST',
 }).then((response) => response.json())
 
 const malgaTokenization = new MalgaTokenization({
-  apiKey,
+  apiKey: publicKey,
   clientId,
   options: {
     config: {

@@ -3,7 +3,7 @@ import './App.css'
 import { MalgaTokenization } from '@malga/tokenization'
 
 interface MalgaKey {
-  apiKey: string
+  publicKey: string
   clientId: string
 }
 
@@ -18,9 +18,9 @@ async function fetchMalgaKey(): Promise<MalgaKey> {
   return response.json()
 }
 
-function createMalgaTokenization({ apiKey, clientId }: MalgaKey) {
+function createMalgaTokenization({ publicKey, clientId }: MalgaKey) {
   return new MalgaTokenization({
-    apiKey,
+    apiKey: publicKey,
     clientId,
     options: {
       config: {
