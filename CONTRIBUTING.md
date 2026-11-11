@@ -103,7 +103,7 @@ that SHA and runs the tests against the dev hosted-fields and dev API, and the r
 `e2e / client` check of the PR.
 
 The suite does not start on its own. The `e2e / client` job runs in the `e2e` environment and waits
-until a Malga member approves it ("Review deployments" on the run). Every new commit pushed to the PR
+until a maintainer approves it ("Review deployments" on the run). Every new commit pushed to the PR
 needs a new approval.
 
 - `e2e / gate` decides whether the suite is needed: only PRs that change `src/`, `package.json`,

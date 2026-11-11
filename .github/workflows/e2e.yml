@@ -7,7 +7,7 @@ name: e2e
 # Fluxo: guarda da URL de dev -> dispara o workflow do client -> acompanha o
 # resultado. O job abaixo é o check do PR (PASS/FAIL).
 #
-# The client job runs in the `e2e` environment: it waits until a Malga member
+# The client job runs in the `e2e` environment: it waits until a maintainer
 # approves the run, and E2E_CLIENT_TOKEN is an environment secret, only released
 # after that approval. `e2e / gate` and `e2e / client` are required checks on main.
 
@@ -80,7 +80,7 @@ jobs:
       !cancelled() &&
       github.repository == 'plughacker/malga-tokenization' &&
       (github.event_name != 'pull_request' || needs.gate.outputs.run == 'true')
-    # Waits for a Malga member to approve before running and releasing the secret.
+    # Waits for a maintainer to approve before running and releasing the secret.
     environment: e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
