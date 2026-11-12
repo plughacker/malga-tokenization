@@ -18,6 +18,9 @@ interface MalgaResponse {
   data: MalgaPayloadResponse
 }
 
+type ApiKeyResult =
+  { ok: true; apiKey: string } | { ok: false; response: MalgaPayloadResponse }
+
 export const TOKENIZE_TIMEOUT_MS = 30000
 export const API_KEY_TIMEOUT_MS = 30000
 
@@ -25,6 +28,8 @@ const INSTANCE_CHANGED_MESSAGE =
   'MalgaTokenization: the instance was destroyed or its card fields were replaced while the API key was fetched'
 
 export class Tokenize {
+  private loading = false
+
   constructor(
     private readonly configurations: MalgaConfigurations,
     private readonly events: Events,
@@ -40,26 +45,41 @@ export class Tokenize {
     return origin === allowedOrigin
   }
 
+  private startLoading(): void {
+    if (this.loading) return
+
+    this.loading = true
+    this.events.emit(Event.Loading, { isLoading: true })
+  }
+
+  private stopLoading(): void {
+    this.loading = false
+    this.events.emit(Event.Loading, { isLoading: false })
+  }
+
   private apiKeyFailure(
     type: 'invalid_request_error' | 'timeout',
     reason: string,
-  ): MalgaPayloadResponse {
+  ): ApiKeyResult {
     return {
-      tokenId: '',
-      error: {
-        type,
-        code: 0,
-        message: `Could not get the API key: ${reason}`,
+      ok: false,
+      response: {
+        tokenId: '',
+        error: {
+          type,
+          code: 0,
+          message: `Could not get the API key: ${reason}`,
+        },
       },
     }
   }
 
   private async resolveApiKey(
     apiKeyProvider: MalgaApiKeyProvider,
-  ): Promise<string | MalgaPayloadResponse> {
+  ): Promise<ApiKeyResult> {
     let timeout: ReturnType<typeof setTimeout> | undefined
 
-    const deadline = new Promise<MalgaPayloadResponse>((resolve) => {
+    const deadline = new Promise<ApiKeyResult>((resolve) => {
       timeout = setTimeout(
         () =>
           resolve(
@@ -72,7 +92,7 @@ export class Tokenize {
       )
     })
 
-    const provided = (async () => {
+    const provided = (async (): Promise<ApiKeyResult> => {
       try {
         const apiKey = await apiKeyProvider()
 
@@ -83,9 +103,9 @@ export class Tokenize {
           )
         }
 
-        return apiKey
+        return { ok: true, apiKey }
       } catch (error) {
-        // a mensagem do backend do integrador não vai no payload, só no console com debug
+        // The integrator's backend error stays out of the payload; it is only logged with debug.
         if (this.configurations.options?.debug) {
           console.error('MalgaTokenization: the apiKey function failed', error)
         }
@@ -138,32 +158,15 @@ export class Tokenize {
 
     const { apiKey } = this.configurations
 
-    if (typeof apiKey !== 'function') {
-      const requestId = generateRequestId()
-      const iframeWindow = submit(this.configurations, requestId)
-
-      if (!iframeWindow) {
-        throw new Error('Card number iframe not found, cannot tokenize')
-      }
-
-      this.events.emit(Event.Loading, { isLoading: true })
-      return this.waitForResponse(iframeWindow, requestId)
-    }
+    if (typeof apiKey !== 'function') return this.send(apiKey)
 
     // With a function, loading starts while the key is fetched.
-    this.events.emit(Event.Loading, { isLoading: true })
-    const stopLoading = () =>
-      this.events.emit(Event.Loading, { isLoading: false })
-
-    let requestId: string
-    let iframeWindow: Window | undefined
+    this.startLoading()
+    let sent = false
 
     try {
-      const resolvedApiKey = await this.resolveApiKey(apiKey)
-      if (typeof resolvedApiKey !== 'string') {
-        stopLoading()
-        return resolvedApiKey
-      }
+      const result = await this.resolveApiKey(apiKey)
+      if (!result.ok) return result.response
 
       // The page may have changed while the key was fetched.
       const currentIframe = getCardNumberIframe(this.configurations)
@@ -175,24 +178,26 @@ export class Tokenize {
       }
 
       const missingFieldsAfterKey = this.missingFieldsResponse()
-      if (missingFieldsAfterKey) {
-        stopLoading()
-        return missingFieldsAfterKey
-      }
+      if (missingFieldsAfterKey) return missingFieldsAfterKey
 
-      requestId = generateRequestId()
-      iframeWindow = submit(
-        { ...this.configurations, apiKey: resolvedApiKey },
-        requestId,
-      )
-      if (!iframeWindow) {
-        throw new Error('Card number iframe not found, cannot tokenize')
-      }
-    } catch (error) {
-      stopLoading()
-      throw error
+      const response = this.send(result.apiKey)
+      sent = true
+      return response
+    } finally {
+      // Once the card is sent, waitForResponse stops the loading.
+      if (!sent) this.stopLoading()
+    }
+  }
+
+  private send(apiKey: string): Promise<MalgaPayloadResponse> {
+    const requestId = generateRequestId()
+    const iframeWindow = submit({ ...this.configurations, apiKey }, requestId)
+
+    if (!iframeWindow) {
+      throw new Error('Card number iframe not found, cannot tokenize')
     }
 
+    this.startLoading()
     return this.waitForResponse(iframeWindow, requestId)
   }
 
@@ -206,7 +211,7 @@ export class Tokenize {
       const finish = () => {
         clearTimeout(timeout)
         windowData.remove('message', messageHandler)
-        this.events.emit(Event.Loading, { isLoading: false })
+        this.stopLoading()
       }
 
       const timeout = setTimeout(() => {
@@ -218,7 +223,7 @@ export class Tokenize {
             code: 0,
             message: `No response from the card number iframe after ${TOKENIZE_TIMEOUT_MS}ms`,
           },
-        } as unknown as MalgaPayloadResponse)
+        })
       }, TOKENIZE_TIMEOUT_MS)
 
       const messageHandler = (event: MessageEvent<MalgaResponse>) => {
