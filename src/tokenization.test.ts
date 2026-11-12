@@ -63,6 +63,16 @@ describe('tokenization', () => {
     )
   })
 
+  test('should accept a function as apiKey without showing an error', () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error')
+    new MalgaTokenization({
+      ...configurationsSDK,
+      apiKey: async () => 'sub-key',
+    })
+
+    expect(consoleErrorSpy).not.toHaveBeenCalled()
+  })
+
   test('should show an error if client ID is missing', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error')
     new MalgaTokenization({ ...configurationsSDK, clientId: '' })
@@ -84,9 +94,26 @@ describe('tokenization', () => {
     const malgaTokenization = new MalgaTokenization(configurationsSDK)
     const token = await malgaTokenization.tokenize()
 
-    expect(Tokenize).toHaveBeenCalledWith(configurationsSDK, getEventsOf(0))
+    expect(Tokenize).toHaveBeenCalledWith(
+      configurationsSDK,
+      getEventsOf(0),
+      expect.any(Function),
+    )
     expect(mockTokenizeHandle).toHaveBeenCalled()
     expect(token).toBe('623e25e1-9c40-442e-beaa-a9d7b735bdc1')
+  })
+
+  test('should tell the tokenization whether the instance is still active', async () => {
+    vi.spyOn(Tokenize.prototype, 'handle').mockResolvedValue(undefined as never)
+
+    const malgaTokenization = new MalgaTokenization(configurationsSDK)
+    await malgaTokenization.tokenize()
+
+    const isActive = vi.mocked(Tokenize).mock.calls.at(-1)![2]!
+    expect(isActive()).toBe(true)
+
+    malgaTokenization.destroy()
+    expect(isActive()).toBe(false)
   })
 
   test('should call eventsEmitter.on when type cardTypeChanged is called', () => {

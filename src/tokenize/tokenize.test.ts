@@ -1,7 +1,11 @@
 import { Event } from 'src/enums'
 import type { Events } from 'src/events'
 import { submit } from 'src/iframes'
-import { TOKENIZE_TIMEOUT_MS, Tokenize } from './../tokenize/tokenize'
+import {
+  API_KEY_TIMEOUT_MS,
+  TOKENIZE_TIMEOUT_MS,
+  Tokenize,
+} from './../tokenize/tokenize'
 import * as iframesModule from 'src/iframes'
 import {
   handleSetupIframeInDOM,
@@ -401,5 +405,267 @@ describe('tokenize', () => {
     await expect(
       new Tokenize(configSDKEachEnvironment(false, false), events).handle(),
     ).rejects.toThrow('Card number iframe not found, cannot tokenize')
+  })
+  describe('apiKey as a function', () => {
+    const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0))
+
+    const withApiKey = (apiKey: () => string | Promise<string>) => ({
+      ...configSDKEachEnvironment(false, false),
+      apiKey,
+    })
+
+    const sentApiKey = () => {
+      const [[message]] = vi.mocked(contentWindowMock.postMessage).mock.calls
+      return message.data.authorizationData.apiKey
+    }
+
+    const answerTokenize = (tokenId: string) =>
+      global.dispatchEvent(
+        handleCreateMessageEventMock(
+          Event.Tokenize,
+          URL_HOSTED_FIELD_PROD,
+          tokenId,
+          contentWindowMock,
+        ),
+      )
+
+    test('should send the key returned by a sync function', async () => {
+      const promise = new Tokenize(
+        withApiKey(() => 'sync-sub-key'),
+        events,
+      ).handle()
+      await flushPromises()
+
+      expect(sentApiKey()).toBe('sync-sub-key')
+
+      answerTokenize('token-sync')
+      expect(await promise).toEqual({ tokenId: 'token-sync' })
+    })
+
+    test('should wait for an async function before sending the card, with loading on while it runs', async () => {
+      let resolveApiKey!: (apiKey: string) => void
+      const apiKeyProvider = vi.fn(
+        () => new Promise<string>((resolve) => (resolveApiKey = resolve)),
+      )
+
+      const promise = new Tokenize(withApiKey(apiKeyProvider), events).handle()
+      await flushPromises()
+
+      expect(apiKeyProvider).toHaveBeenCalledTimes(1)
+      expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+      expect(events.emit).toHaveBeenCalledTimes(1)
+      expect(events.emit).toHaveBeenCalledWith(Event.Loading, {
+        isLoading: true,
+      })
+
+      resolveApiKey('async-sub-key')
+      await flushPromises()
+
+      expect(sentApiKey()).toBe('async-sub-key')
+
+      answerTokenize('token-async')
+      expect(await promise).toEqual({ tokenId: 'token-async' })
+      expect(events.emit).toHaveBeenCalledTimes(2)
+      expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+    })
+
+    test('should call the function on every tokenize', async () => {
+      const apiKeyProvider = vi
+        .fn()
+        .mockResolvedValueOnce('first-sub-key')
+        .mockResolvedValueOnce('second-sub-key')
+      const config = withApiKey(apiKeyProvider)
+
+      const first = new Tokenize(config, events).handle()
+      await flushPromises()
+      answerTokenize('token-first')
+      await first
+
+      const second = new Tokenize(config, events).handle()
+      await flushPromises()
+      answerTokenize('token-second')
+      await second
+
+      const sentKeys = vi
+        .mocked(contentWindowMock.postMessage)
+        .mock.calls.map(([message]) => message.data.authorizationData.apiKey)
+
+      expect(apiKeyProvider).toHaveBeenCalledTimes(2)
+      expect(sentKeys).toEqual(['first-sub-key', 'second-sub-key'])
+    })
+
+    test('should resolve with an error, without sending the card, when the function throws', async () => {
+      const response = await new Tokenize(
+        withApiKey(() => Promise.reject(new Error('backend unavailable'))),
+        events,
+      ).handle()
+
+      expect(response).toEqual({
+        tokenId: '',
+        error: {
+          type: 'invalid_request_error',
+          code: 0,
+          message:
+            'Could not get the API key: the apiKey function threw an error',
+        },
+      })
+      expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+      expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+    })
+
+    test('should log the error of the function only with debug', async () => {
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => undefined)
+      const backendError = new Error('backend unavailable')
+      const failingApiKey = () => Promise.reject(backendError)
+
+      await new Tokenize(withApiKey(failingApiKey), events).handle()
+      expect(consoleError).not.toHaveBeenCalled()
+
+      const response = await new Tokenize(
+        {
+          ...configSDKEachEnvironment(true, false),
+          apiKey: failingApiKey,
+        },
+        events,
+      ).handle()
+      expect(consoleError).toHaveBeenCalledWith(
+        'MalgaTokenization: the apiKey function failed',
+        backendError,
+      )
+      expect(response.error.message).not.toContain('backend unavailable')
+
+      consoleError.mockRestore()
+    })
+
+    test('should resolve with an error when the function returns an empty key', async () => {
+      const response = await new Tokenize(
+        withApiKey(() => ''),
+        events,
+      ).handle()
+
+      expect(response.error).toEqual(
+        expect.objectContaining({
+          type: 'invalid_request_error',
+          message:
+            'Could not get the API key: the apiKey function must return a non-empty string',
+        }),
+      )
+      expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+    })
+
+    test('should not call the function when a configured field is empty', async () => {
+      sessionStorage.clear()
+      const apiKeyProvider = vi.fn(() => 'sub-key')
+
+      const response = await new Tokenize(
+        withApiKey(apiKeyProvider),
+        events,
+      ).handle()
+
+      expect(response.error.type).toBe('invalid_request_error')
+      expect(apiKeyProvider).not.toHaveBeenCalled()
+    })
+
+    test('should stop loading when sending the card throws', async () => {
+      vi.mocked(contentWindowMock.postMessage).mockImplementation(() => {
+        throw new Error('postMessage failed')
+      })
+
+      await expect(
+        new Tokenize(
+          withApiKey(async () => 'sub-key'),
+          events,
+        ).handle(),
+      ).rejects.toThrow('postMessage failed')
+      expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+    })
+
+    test('should reject without sending the card when the instance is no longer active after the key is fetched', async () => {
+      let resolveApiKey!: (apiKey: string) => void
+      let isActive = true
+      const promise = new Tokenize(
+        withApiKey(
+          () => new Promise<string>((resolve) => (resolveApiKey = resolve)),
+        ),
+        events,
+        () => isActive,
+      ).handle()
+      await flushPromises()
+
+      isActive = false
+      resolveApiKey('sub-key')
+
+      await expect(promise).rejects.toThrow(
+        'the instance was destroyed or its card fields were replaced',
+      )
+      expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+      expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+    })
+
+    test('should resolve with a timeout error when the function never answers, ignoring a late key', async () => {
+      vi.useFakeTimers()
+
+      try {
+        let resolveApiKey!: (apiKey: string) => void
+        const promise = new Tokenize(
+          withApiKey(
+            () => new Promise<string>((resolve) => (resolveApiKey = resolve)),
+          ),
+          events,
+        ).handle()
+
+        await vi.advanceTimersByTimeAsync(API_KEY_TIMEOUT_MS)
+
+        expect(await promise).toEqual({
+          tokenId: '',
+          error: {
+            type: 'timeout',
+            code: 0,
+            message: `Could not get the API key: no answer from the apiKey function after ${API_KEY_TIMEOUT_MS}ms`,
+          },
+        })
+        expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+          isLoading: false,
+        })
+
+        resolveApiKey('late-sub-key')
+        await vi.advanceTimersByTimeAsync(0)
+
+        expect(contentWindowMock.postMessage).not.toHaveBeenCalled()
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    test('should reject and stop loading when the iframe leaves the page while the key is fetched', async () => {
+      let resolveApiKey!: (apiKey: string) => void
+      const promise = new Tokenize(
+        withApiKey(
+          () => new Promise<string>((resolve) => (resolveApiKey = resolve)),
+        ),
+        events,
+      ).handle()
+      await flushPromises()
+
+      handleRemoveIframe(iframe)
+      resolveApiKey('sub-key')
+
+      await expect(promise).rejects.toThrow(
+        'Card number iframe not found, cannot tokenize',
+      )
+      expect(events.emit).toHaveBeenLastCalledWith(Event.Loading, {
+        isLoading: false,
+      })
+    })
   })
 })
