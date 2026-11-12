@@ -1,5 +1,15 @@
 # @malga/tokenization
 
+## 5.1.0
+
+### Minor Changes
+
+- [#59](https://github.com/plughacker/malga-tokenization/pull/59) [`9eba191`](https://github.com/plughacker/malga-tokenization/commit/9eba1919b9aba1fa72ca009feda01c6f84096eec) Thanks [@diego-malga](https://github.com/diego-malga)! - `apiKey` accepts a function that returns the key (sync or async). It is called on every `tokenize()`, right before the card data is sent, so a short-lived sub-key can be fetched only when needed and renewed without recreating the fields. Passing a string works as before. The function has a 30-second deadline, and the card is only sent if the instance and its fields are still the same, and complete, once the key arrives.
+
+### Patch Changes
+
+- [#58](https://github.com/plughacker/malga-tokenization/pull/58) [`4779925`](https://github.com/plughacker/malga-tokenization/commit/4779925e0624f9ef174c3e3d5f54216a4ae84c53) Thanks [@diego-malga](https://github.com/diego-malga)! - Document in the README and in JSDoc (`apiKey`, constructor and `tokenize()`) that the SDK must receive a short-lived sub-key with the `tokens` scope, created by your backend for each checkout session, never your secret key.
+
 ## 5.0.0
 
 ### Major Changes
